@@ -15,6 +15,7 @@
     ],
     "um_physics_interface_spice_unit_tests": [
         "um_physics_interface_unit_tests_spice_intel_64bit",
+        "um_physics_interface_unit_tests_spice_gnu_64bit",
     ],
     }) %}
 

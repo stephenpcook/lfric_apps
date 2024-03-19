@@ -16,9 +16,11 @@
     ],
     "gungho_spice_unit_tests": [
         "gungho_unit_tests_spice_intel_64bit",
+        "gungho_unit_tests_spice_gnu_64bit",
     ],
     "gungho_spice_integration_tests": [
         "gungho_integration_tests_spice_intel_64bit",
+        "gungho_integration_tests_spice_gnu_64bit",
     ],
     }) %}
 

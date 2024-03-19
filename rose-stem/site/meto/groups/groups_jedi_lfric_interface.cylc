@@ -16,9 +16,11 @@
     ],
     "jedi_lfric_interface_spice_unit_tests": [
         "jedi_lfric_interface_unit_tests_spice_intel_64bit",
+        "jedi_lfric_interface_unit_tests_spice_gnu_64bit",
     ],
     "jedi_lfric_interface_spice_integration_tests": [
         "jedi_lfric_interface_integration_tests_spice_intel_64bit",
+        "jedi_lfric_interface_integration_tests_spice_gnu_64bit",
     ],
     }) %}
 
