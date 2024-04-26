@@ -194,6 +194,23 @@
     ],
     }) %}
 
+{# EX1A groups #}
+{% do site_groups.update({
+    "gungho_model_ex1a_developer": [
+        "gungho_model_held-suarez-C24_MG_ex1a_gnu_fast-debug-64bit",
+        "gungho_model_ex1a_canned",
+    ],
+    "gungho_model_ex1a": [
+        "gungho_model_ex1a_developer"
+    ],
+    "gungho_model_ex1a_build": [
+        "build_gungho_model_xc40_gnu_fast-debug-64bit",
+    ],
+    "gungho_model_ex1a_canned": [
+        "gungho_model_canned_ex1a_gnu_fast-debug-64bit",
+    ],
+  }) %}
+
 {# Platform Generic Groups #}
 {% do site_groups.update({
     "gungho_model_developer": [
@@ -248,5 +265,10 @@
 {% do site_groups.xc40.extend(site_groups.gungho_model_xc40) %}
 {% do site_groups.xc40_build.extend(site_groups.gungho_model_xc40_build) %}
 {% do site_groups.xc40_performance.extend(site_groups.gungho_model_xc40_performance) %}
+
+{# EX1A Extends #}
+{% do site_groups.ex1a_developer.extend(site_groups.gungho_model_ex1a_developer) %}
+{% do site_groups.ex1a.extend(site_groups.gungho_model_ex1a) %}
+{% do site_groups.ex1a_build.extend(site_groups.gungho_model_ex1a_build) %}
 
 {% do LOG.debug("Finished in site/meto/groups/groups_gungho_model.cylc") %}

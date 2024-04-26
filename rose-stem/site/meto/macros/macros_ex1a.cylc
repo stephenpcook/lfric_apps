@@ -1,0 +1,38 @@
+{# ########################################################################### #}
+{# (c) Crown copyright 2024 Met Office. All rights reserved. #}
+{# The file LICENCE, distributed with this code, contains details of the terms #}
+{# under which the code may be used. #}
+{# ########################################################################### #}
+{% do LOG.debug("Entered site/meto/macros/macros_ex1a.cylc") %}
+
+{% set ex1a_cores_per_node = 128 %}
+
+{% macro set_wallclock(time) %}
+{# macro to set wallclock - input is in minutes #}
+            -l walltime=00:{{time|int}}:00
+{% endmacro %}
+
+
+{% macro set_task_cores(mpi_ranks,
+                        threads=1,
+                        xios_nodes=0,
+                        ocean_nodes=0,
+                        river_nodes=0) %}
+
+    {% set lfric_nodes = ((mpi_ranks|float * threads|float) /
+                          (ex1a_cores_per_node|float))|round(0, 'ceil')|int %}
+
+            -l select={{ lfric_nodes +
+                         ocean_nodes|int +
+                         river_nodes|int +
+                         xios_nodes|int }}
+{% endmacro %}
+
+
+{% macro set_memory(mem) %}
+    {% set value = mem[0]|int %}
+    {% set unit = mem[1] %}
+            -l mem={{value}}{{unit}}
+{% endmacro %}
+
+{% do LOG.debug("Finished in site/meto/macros/macros_ex1a.cylc") %}

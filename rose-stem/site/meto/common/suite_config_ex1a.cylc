@@ -1,0 +1,117 @@
+{# ########################################################################### #}
+{# (c) Crown copyright 2024 Met Office. All rights reserved. #}
+{# The file LICENCE, distributed with this code, contains details of the terms #}
+{# under which the code may be used. #}
+{# ########################################################################### #}
+{% do LOG.debug("Entered site/meto/common/suite_config_ex1a.cylc") %}
+
+{% set ex1a_base = 'module use /common/internal/spack/ngms' %}
+
+{% set ex1a_compiler_gnu = 'module load PrgEnv-gnu ; '~
+                           'module load gcc/12.2.0 ; '~
+                           'module load lfric-gnu/12.2.0' %}
+
+{% set set_ulimit = 'ulimit -s unlimited -c unlimited; '~
+                    'ulimit -a '%}
+
+{% set ex1a_scitools = 'module load scitools/production-os46-3' %}
+{% set ex1a_tech = '' %}
+
+    [[EX1A_BASE]]
+        platform = {{site_vars.host_ex}}
+        [[[environment]]]
+            BUILD_ROOT = ${TMPDIR}
+            HYPERTHREADS    = 1
+            CORES_PER_NODE  = 128
+            NUMA_REGIONS_PER_NODE = 2
+
+    [[EX1A_SHARED_QUEUE]]
+        [[[environment]]]
+        ROSE_LAUNCHER = 'mpiexec'
+
+    [[EX1A_NORMAL_QUEUE]]
+        [[[environment]]]
+            ROSE_LAUNCHER = 'mpiexec'
+
+    [[EX1A_BUILD]]
+        inherit=EX1A_SHARED_QUEUE
+        [[[directives]]]
+            -l select=1:ncpus=16:mem=12GB:tmpsize=4GB
+            -l walltime=01:00:00
+            -q=shared
+
+    [[EX1A_RUN]]
+        inherit=EX1A_NORMAL_QUEUE
+        [[[environment]]]
+            {# Big Data Dir will be under the lfricadmin account #}
+            {# When this is available this variable will need setting #}
+            BIG_DATA_DIR = ''
+            TARGET_PLATFORM = 'meto-ex1a'
+            RUN_METHOD = 'mpiexec'
+        [[[directives]]]
+            -l select=1
+            -l walltime=00:10:00
+            -q=normal
+
+    [[EX1A_GNU]]
+        [[[environment]]]
+            COMPILER = 'gnu'
+
+    [[EX1A_BUILD_GNU]]
+        inherit=EX1A_BASE,EX1A_BUILD,EX1A_GNU
+        {{ generate_script("pre-script", [ex1a_base, ex1a_compiler_gnu]) }}
+
+    [[EX1A_RUN_GNU]]
+        inherit=EX1A_BASE,EX1A_RUN,EX1A_GNU
+        {{ generate_script("pre-script", [ex1a_base, ex1a_compiler_gnu, set_ulimit]) }}
+
+    [[EX1A_MESH]]
+        inherit=EX1A_BASE,EX1A_SHARED_QUEUE
+        [[[directives]]]
+            -l select=1:ncpus=1:mem=6GB:tmpsize=6GB
+            -l walltime=00:10:00
+            -q=shared
+
+    [[EX1A_MESH_GNU]]
+        inherit=EX1A_GNU,EX1A_MESH
+        {{ generate_script("pre-script", [ex1a_base,
+                                          ex1a_compiler_gnu,
+                                          ex1a_scitools,
+                                          ex1a_tech]) }}
+
+    [[EX1A_TECH_BASE]]
+        inherit=EX1A_BASE,EX1A_SHARED_QUEUE
+        [[[directives]]]
+            -l select=1:ncpus=1:mem=6GB:tmpsize=6GB
+            -l walltime=00:20:00
+            -q=shared
+
+    [[EX1A_TECH_TESTS]]
+        inherit=EX1A_TECH_BASE
+
+    [[EX1A_TECH_TESTS_GNU]]
+        inherit=EX1A_TECH_TESTS,EX1A_GNU
+        {{ generate_script("pre-script", [ex1a_base, ex1a_compiler_gnu, ex1a_tech]) }}
+
+    [[EX1A_TECH]]
+        inherit=EX1A_TECH_BASE
+        {{ generate_script("pre-script", [ex1a_scitools,
+                                          ex1a_tech]) }}
+
+    [[EX1A_PLOT]]
+        inherit=EX1A_TECH_BASE
+        {{ generate_script("pre-script", [ex1a_scitools]) }}
+
+    [[EX1A_CHECK]]
+        inherit=EX1A_TECH
+
+    [[EX1A_EXPORT-SOURCE]]
+        inherit=METO_ORIG
+        [[[environment]]]
+            hostname = $(rose host-select {{site_vars.host_ex}})
+            PLATFORM_SYNC = true
+
+    [[EX1A_HOUSEKEEPING]]
+        inherit=EX1A_TECH_BASE
+
+{% do LOG.debug("Finished in sitemeto/common/suite_config_ex1a.cylc") %}

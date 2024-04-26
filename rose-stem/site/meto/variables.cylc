@@ -25,12 +25,15 @@
                                                "adjoint_tests"]}) %}
 
 {% do site_vars.update({"site_platforms": ["spice",
-                                           "xc40"]}) %}
+                                           "xc40",
+                                           "ex1a"]}) %}
 
 {% do site_vars.update({"scripts_platform": "spice"}) %}
 
+{# Note intel unavailable on ex1a hence using gnu #}
 {% do site_vars.update({"mesh_build": {"spice": "intel_fast-debug-64bit",
-                                       "xc40": "intel_fast-debug-64bit"} }) %}
+                                       "xc40": "intel_fast-debug-64bit",
+                                       "ex1a": "gnu_fast-debug-64bit"} }) %}
 
 {# If running on Monsoon TRUSTZONE will be collaboration #}
 {% if "TRUSTZONE" in environ %}
@@ -63,6 +66,20 @@
     {% do site_vars.update({"meto_xc40_subproject": "lfric_opt"}) %}
 {% else %}
     {% do site_vars.update({"meto_xc40_queue": "normal"}) %}
+{% endif %}
+
+{# Choose EX Host - default of exz #}
+{% if USE_EXZ is defined and USE_EXZ %}
+    {% do site-vars.update({"host_ex" : "exz"}) %}
+{% elif USE_EX is defined and USE_EX %}
+    {# Should choose between ab or cd eventually #}
+    {# Hardcoded to ab for now #}
+    {% do site_vars.update({"host_ex": "exab"}) %}
+{% elif USE_EXAB is defined and USE_EXAB %}
+    {% do site_vars.update({"host_ex": "exab"}) %}
+{% else %}
+    {# Currently default to the EXZ #}
+    {% do site_vars.update({"host_ex" : "exz"}) %}
 {% endif %}
 
 {% do site_vars.update({"lfricinputs_kgo_base": "$UMDIR/standard_jobs/lfricinputs/kgo"}) %}

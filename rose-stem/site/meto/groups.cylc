@@ -49,12 +49,17 @@
     "spice": ["spice_developer"],
     "xc40_developer": [],
     "xc40": ["xc40_developer"],
+    "ex1a_developer": [],
+ 	"ex1a": ["ex1a_developer"],
     "spice_build": [],
     "xc40_build": [],
+    "ex1a_build": [],
     "spice_unit_tests": [],
     "xc40_unit_tests": [],
+    "ex1a_unit_tests": [],
     "spice_integration_tests": [],
     "xc40_integration_tests": [],
+    "ex1a_integration_tests": [],
     "xc40_performance": [],
     }) %}
 

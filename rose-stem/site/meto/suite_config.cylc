@@ -14,6 +14,8 @@
 
 {% include 'site/meto/common/suite_config_spice.cylc' %}
 {% include 'site/meto/common/suite_config_xc40.cylc' %}
+{% include 'site/meto/common/suite_config_ex1a.cylc' %}
+
 {% if "lfricinputs" in requested_applications %}
     {% include 'site/meto/common/suite_config_lfricinputs.cylc' %}
 {% endif %}
