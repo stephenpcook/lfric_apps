@@ -20,7 +20,6 @@ module diagnostics_calc_mod
   use io_config_mod,                 only: use_xios_io,          &
                                            nodal_output_on_w3
   use files_config_mod,              only: diag_stem_name
-  use project_output_mod,            only: project_output
   use io_mod,                        only: ts_fname, &
                                            nodal_write_field
   use lfric_xios_write_mod,          only: write_field_generic

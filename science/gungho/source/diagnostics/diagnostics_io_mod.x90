@@ -22,6 +22,8 @@ module diagnostics_io_mod
   use function_space_collection_mod, only: function_space_collection
   use finite_element_config_mod,     only: element_order
   use fs_continuity_mod,             only: Wtheta, W2H
+  use geometric_constants_mod,       only: get_coordinates, &
+                                           get_panel_id
   use project_output_mod,            only: project_output
   use io_mod,                        only: ts_fname, &
                                            nodal_write_field
@@ -166,15 +168,17 @@ subroutine write_vector_diagnostic( field_name, field, &
                                     clock, mesh, W3_project )
   implicit none
 
-  character(len=*),        intent(in)    :: field_name
-  type(field_type),        intent(in)    :: field
-  class(model_clock_type), intent(in)    :: clock
-  type(mesh_type),         intent(in), pointer :: mesh
-  logical,                 intent(in)    :: W3_project
+  character(len=*),          intent(in)    :: field_name
+  type(field_type),          intent(in)    :: field
+  class(model_clock_type),   intent(in)    :: clock
+  type(mesh_type),  pointer, intent(in)    :: mesh
+  logical,                   intent(in)    :: W3_project
 
   integer(i_def), parameter       :: nodal_output_unit = 21
 
   ! Local Variables
+  type(field_type), pointer       :: chi(:)
+  type(field_type), pointer       :: panel_id
   type(field_type)                :: nodal_coordinates(3)
   type(field_type)                :: output_field(3)
   type(field_type)                :: projected_field(3)
@@ -191,6 +195,9 @@ subroutine write_vector_diagnostic( field_name, field, &
   integer(i_timestep)             :: timestep
 
   procedure(write_interface), pointer  :: tmp_write_ptr => null()
+
+  chi      => get_coordinates( mesh%get_id() )
+  panel_id => get_panel_id( mesh%get_id() )
 
   ! Copy the input field to avoid risk of it being halo swapped which can cause
   ! spurious numerical differences between runs with and without diagnostic output
@@ -230,7 +237,9 @@ subroutine write_vector_diagnostic( field_name, field, &
       output_dim = 3
 
       ! Project the field to the output field
-      call project_output( temp_field, projected_field, output_dim, W3 , mesh )
+      call project_output(                                   &
+        temp_field, projected_field, chi, panel_id, mesh, W3 &
+      )
 
       do i =1,output_dim
          ! Write the component number into a new field name
@@ -270,7 +279,7 @@ subroutine write_vector_diagnostic( field_name, field, &
       output_dim = 3
 
       ! Project the field to the output field
-      call project_output( temp_field, projected_field, output_dim, W3 , mesh )
+      call project_output( temp_field, projected_field, chi, panel_id, mesh, W3 )
 
       ! Set up correct I/O handler for Xi projected to W3
       tmp_write_ptr => write_field_generic

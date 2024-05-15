@@ -217,7 +217,7 @@ contains
       else
 
         ! Project the field to the output field
-        call project_output( field, output_field, 1, W3 , mesh )
+        call project_output( field, output_field, chi, panel_id, mesh, W3 )
 
       end if
 
@@ -369,6 +369,11 @@ contains
     type(mesh_type),  intent(in), pointer :: mesh
     logical(l_def),   intent(in)    :: W3_project
 
+    type(field_type), pointer :: chi(:)
+    type(field_type), pointer :: panel_id
+
+    nullify( chi, panel_id )
+
     ! Check if projection required, setup output field and filename
 
     if (W3_project) then
@@ -386,7 +391,9 @@ contains
       else
 
         ! Project the field to the output field
-        call project_output( field, output_field, 1, W3 , mesh )
+        chi      => get_coordinates( mesh%get_id() )
+        panel_id => get_panel_id( mesh%get_id() )
+        call project_output( field, output_field, chi, panel_id, mesh, W3 )
 
       end if
 
