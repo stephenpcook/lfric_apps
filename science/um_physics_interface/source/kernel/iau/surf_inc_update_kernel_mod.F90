@@ -65,8 +65,8 @@ contains
   !> @param[in]     snow_layer_temp_inc  Snow temp increment on snow layers and tiles
   !> @param[in,out] snow_layer_temp      Snow temp on snow layers and tiles
   !> @param[in]     n_land_tile          Number of land tiles
-  !> @param[in]     snow_lev_tile        Number of snow levels
-  !> @param[in]     sm_levels            Number of soil moisture levels
+  !> @param[in]     snow_lev_tile        Number of snow levels and land tiles
+  !> @param[in]     sm_levels            Number of soil levels
   !> @param[in]     nsmax                Number of multilevels in snow scheme
   !> @param[in]     T_freeze_h2o         Freezing point of water
   !> @param[in]     ndf_2d               number of total DOFs per cell for 2d fields

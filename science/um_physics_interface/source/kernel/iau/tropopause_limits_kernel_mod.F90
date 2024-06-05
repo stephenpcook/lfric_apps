@@ -124,7 +124,6 @@ contains
         ! Call qsat_mix from UM routine
         call qsat_mix( msat_out, temperature(map_wth(1) + k), pressure(map_wth(1) + k) )
 
-!!!SP Does trop_level define the last level in the troposphere or the 1st in the stratosphere??
         ! Apply limits depending on whether in troposphere
         if ( k <= i_trop ) then
         ! in troposphere

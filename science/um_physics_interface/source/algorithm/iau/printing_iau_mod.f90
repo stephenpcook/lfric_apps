@@ -10,6 +10,7 @@ module printing_iau_mod
   use constants_mod,           only : i_def
   use field_collection_mod,    only : field_collection_type
   use field_mod,               only : field_type
+  use iau_config_mod,          only : iau_wet_density
   use log_mod,                 only : log_level
   use print_meanrms_field_mod, only : print_meanrms_field
   use field_minmax_alg_mod,    only : log_field_minmax
@@ -19,6 +20,8 @@ module printing_iau_mod
   private
   public :: print_minmax_prog,          &
             print_meanrms_prog,         &
+            print_minmax_iau,           &
+            print_meanrms_iau,          &
             print_minmax_cld,           &
             print_meanrms_cld,          &
             print_minmax_surf
@@ -130,6 +133,107 @@ module printing_iau_mod
     end if
 
   end subroutine print_meanrms_prog
+
+  !> @brief   print the iau_fields min-max
+  !> @details print the min-max of the different iau increment fields
+  !> @param[in] iau_fields        The collection of iau fields
+  !> @param[in] level             Level of logging. If the configured
+  !>                              log_level is less than or equal to
+  !>                              level, output will be shown.
+  subroutine print_minmax_iau( iau_fields, level )
+
+    implicit none
+
+    type( field_collection_type ), intent(in) :: iau_fields
+    integer( kind = i_def ),       intent(in) :: level
+
+    type( field_type ),            pointer :: iau_field
+
+    if( log_level() <= level ) then
+
+      call iau_fields % get_field( 'theta_inc', iau_field )
+      call log_field_minmax( level, 'theta_inc', iau_field )
+
+      call iau_fields % get_field( 'exner_inc', iau_field )
+      call log_field_minmax( level, 'exner_inc', iau_field )
+
+      call iau_fields % get_field( 'u_in_w3_inc', iau_field )
+      call log_field_minmax( level, 'u_in_w3_inc', iau_field )
+
+      call iau_fields % get_field( 'v_in_w3_inc', iau_field )
+      call log_field_minmax( level, 'v_in_w3_inc', iau_field )
+
+      call iau_fields % get_field( 'q_inc', iau_field )
+      call log_field_minmax( level, 'q_inc', iau_field )
+
+      call iau_fields % get_field( 'qcl_inc', iau_field )
+      call log_field_minmax( level, 'qcl_inc', iau_field )
+
+      call iau_fields % get_field( 'qcf_inc', iau_field )
+      call log_field_minmax( level, 'qcf_inc', iau_field )
+
+      if ( iau_wet_density ) then
+        call iau_fields % get_field( 'rho_r2_inc', iau_field )
+        call log_field_minmax( level, 'rho_r2_inc', iau_field )
+      else
+        call iau_fields % get_field( 'rho_inc', iau_field )
+        call log_field_minmax( level, 'rho_inc', iau_field )
+      end if
+
+    end if
+
+  end subroutine print_minmax_iau
+
+  !> @brief   print the iau_fields mean and rms
+  !> @details print the mean and rms of the different iau increment fields
+  !> @param[in] iau_fields        The collection of iau fields
+  !> @param[in] level             Level of logging. If the configured
+  !>                              log_level is less than or equal to
+  !>                              level, output will be shown.
+  subroutine print_meanrms_iau( iau_fields, level )
+
+    implicit none
+
+    type( field_collection_type ), intent(in) :: iau_fields
+    integer( kind = i_def ),       intent(in) :: level
+
+    type( field_type ), pointer               :: iau_field
+
+    if( log_level() <= level ) then
+
+      call iau_fields % get_field( 'theta_inc', iau_field )
+      call print_meanrms_field( iau_field, level )
+
+      call iau_fields % get_field( 'exner_inc', iau_field )
+      call print_meanrms_field( iau_field, level )
+
+      call iau_fields % get_field( 'u_in_w3_inc', iau_field )
+      call print_meanrms_field( iau_field, level )
+
+      call iau_fields % get_field( 'v_in_w3_inc', iau_field )
+      call print_meanrms_field( iau_field, level )
+
+      call iau_fields % get_field( 'q_inc', iau_field )
+      call print_meanrms_field( iau_field, level )
+
+      call iau_fields % get_field( 'qcl_inc', iau_field )
+      call print_meanrms_field( iau_field, level )
+
+      call iau_fields % get_field( 'qcf_inc', iau_field )
+      call print_meanrms_field( iau_field, level )
+
+      if ( iau_wet_density ) then
+        call iau_fields % get_field( 'rho_r2_inc', iau_field )
+        call print_meanrms_field( iau_field, level )
+      else
+        call iau_fields % get_field( 'rho_inc', iau_field )
+        call print_meanrms_field( iau_field, level )
+      end if
+
+    end if
+
+  end subroutine print_meanrms_iau
+
 
   !> @brief Print the cloud_fields min-max.
   !> @param[in] cloud_fields  Collection of cloud fields

@@ -15,18 +15,20 @@ module update_iau_inc_alg_mod
   use field_collection_mod,             only : field_collection_type
   use gungho_modeldb_mod,               only : modeldb_type
   use fs_continuity_mod,                only : W2, W3, Wtheta
-  use iau_config_mod,                   only : iau_pc2, &
-                                               iau_wet_density
+  use iau_config_mod,                   only : iau_pc2,               &
+                                               iau_wet_density,       &
+                                               iau_use_level_one_temp
   use iau_humidity_inc_alg_mod,         only : iau_humidity_inc,  &
                                                iau_humidity_checks
   use iau_pc2_assimilation_alg_mod,     only : iau_pc2_assimilation
   use iau_time_control_mod,             only : calc_iau_weight
   use integer_field_mod,                only : integer_field_type
+  use level_one_temp_alg_mod,           only: level_one_temp_alg
   use lfric_xios_read_mod,              only : read_state
   use log_mod,                          only : log_event,         &
                                                log_scratch_space, &
                                                log_level_info,    &
-                                               log_level_trace
+                                               log_level_debug
   use map_fd_to_prognostics_alg_mod,    only : set_wind
   use map_physics_fields_alg_mod,       only : map_physics_fields_alg
   use mesh_mod,                         only : mesh_type
@@ -36,6 +38,8 @@ module update_iau_inc_alg_mod
   use planet_config_mod,                only : kappa, p_zero, one_over_kappa
   use printing_iau_mod,                 only : print_minmax_prog,        &
                                                print_meanrms_prog,       &
+                                               print_minmax_iau,         &
+                                               print_meanrms_iau,        &
                                                print_minmax_cld,         &
                                                print_meanrms_cld
   use print_meanrms_field_mod,          only : print_meanrms_field
@@ -60,8 +64,13 @@ module update_iau_inc_alg_mod
   !> @param[in,out]  prognostic_fields  The collection of prognostic fields
   !> @param[in]      derived_fields     The collection of derived fields
   !> @param[in,out]  cloud_fields       The collection of cloud fields
+  !> @param[in,out]  surface_fields     The collection of surface fields
+  !> @param[in,out]  soil_fields        The collection of soil fields
+  !> @param[in,out]  snow_fields        The collection of snow fields
   !> @param[in]      model_clock        The model clock, used to determine the IAU weight
-  subroutine add_iau_inc( iau_fields, twod_mesh, prognostic_fields, derived_fields, cloud_fields, model_clock )
+  subroutine add_iau_inc( iau_fields, twod_mesh, prognostic_fields, derived_fields, &
+                          cloud_fields, surface_fields, soil_fields, snow_fields, &
+                          model_clock )
 
     implicit none
 
@@ -71,34 +80,37 @@ module update_iau_inc_alg_mod
     type( field_collection_type ), intent(inout)       :: prognostic_fields
     type( field_collection_type ), intent(in)          :: derived_fields
     type( field_collection_type ), intent(inout)       :: cloud_fields
+    type( field_collection_type ), intent(inout)       :: surface_fields
+    type( field_collection_type ), intent(inout)       :: soil_fields
+    type( field_collection_type ), intent(inout)       :: snow_fields
     class( model_clock_type ),     intent(in)          :: model_clock
 
-    type( field_type ), pointer :: u          => null()
-    type( field_type ), pointer :: theta      => null()
-    type( field_type ), pointer :: rho        => null()
-    type( field_type ), pointer :: exner      => null()
-    type( field_type ), pointer :: m_v        => null()
-    type( field_type ), pointer :: m_cl       => null()
-    type( field_type ), pointer :: m_ci       => null()
-    type( field_type ), pointer :: m_r        => null()
-    type( field_type ), pointer :: m_s        => null()
-    type( field_type ), pointer :: m_g        => null()
+    type( field_type ), pointer :: u
+    type( field_type ), pointer :: theta
+    type( field_type ), pointer :: rho
+    type( field_type ), pointer :: exner
+    type( field_type ), pointer :: m_v
+    type( field_type ), pointer :: m_cl
+    type( field_type ), pointer :: m_ci
+    type( field_type ), pointer :: m_r
+    type( field_type ), pointer :: m_s
+    type( field_type ), pointer :: m_g
 
     ! Increments coming from the read file
-    type( field_type ), pointer :: u_in_w3_inc => null()
-    type( field_type ), pointer :: v_in_w3_inc => null()
-    type( field_type ), pointer :: q_inc       => null()
-    type( field_type ), pointer :: qcl_inc     => null()
-    type( field_type ), pointer :: qcf_inc     => null()
-    type( field_type ), pointer :: theta_inc   => null()
-    type( field_type ), pointer :: rho_r2_inc  => null()
-    type( field_type ), pointer :: rho_inc    => null()
-    type( field_type ), pointer :: exner_inc   => null()
+    type( field_type ), pointer :: u_in_w3_inc
+    type( field_type ), pointer :: v_in_w3_inc
+    type( field_type ), pointer :: q_inc
+    type( field_type ), pointer :: qcl_inc
+    type( field_type ), pointer :: qcf_inc
+    type( field_type ), pointer :: theta_inc
+    type( field_type ), pointer :: rho_r2_inc
+    type( field_type ), pointer :: rho_inc
+    type( field_type ), pointer :: exner_inc
 
     ! Cloud field pointers
-    type( field_type ), pointer :: bcf => null()
-    type( field_type ), pointer :: cff => null()
-    type( field_type ), pointer :: cfl => null()
+    type( field_type ), pointer :: bcf
+    type( field_type ), pointer :: cff
+    type( field_type ), pointer :: cfl
 
     type( field_type )          :: u_inc
     type( field_type )          :: upward_wind_tmp
@@ -107,9 +119,11 @@ module update_iau_inc_alg_mod
     type( field_type )          :: exner_wth
     type( field_type )          :: one_minus_qs
 
-    ! Quantities for pc2
+
+    ! Quantities for pc2 and level one T updates
     type(field_type), pointer   :: exner_earlier_wth
     type(field_type)            :: theta_earlier
+    type(field_type)            :: temperature_earlier
     type(field_type)            :: mv_earlier
     type(field_type)            :: mcl_earlier
     type(field_type)            :: mci_earlier
@@ -160,9 +174,10 @@ module update_iau_inc_alg_mod
     call cloud_fields % get_field( 'frozen_fraction', cff )
     call cloud_fields % get_field( 'liquid_fraction', cfl )
 
-    ! Fields for pc2
+    ! Fields for pc2 and level one T updates
     call derived_fields % get_field( 'exner_in_wth', exner_earlier_wth )
     call theta % copy_field_properties( theta_earlier )
+    call theta % copy_field_properties( temperature_earlier )
     call m_v % copy_field_properties( mv_earlier )
     call m_cl % copy_field_properties( mcl_earlier )
     call m_ci % copy_field_properties( mci_earlier )
@@ -171,32 +186,35 @@ module update_iau_inc_alg_mod
     call m_g % copy_field_properties( mg_earlier )
     call theta % copy_field_properties( exner_wth )
 
-    ! Save initial theta, exner on theta levels and humidities for use later
-    call invoke ( setval_X( theta_earlier, theta ),               &
-                  setval_X( mv_earlier, m_v ),                    &
-                  setval_X( mcl_earlier, m_cl ),                  &
-                  setval_X( mci_earlier, m_ci ),                  &
-                  setval_X( mr_earlier, m_r ),                    &
-                  setval_X( ms_earlier, m_s ),                    &
-                  setval_X( mg_earlier, m_g )                     &
+    ! Save initial theta, exner on theta levels and humidities, and 
+    ! calculate initial temperature, for use later
+    call invoke ( setval_X( theta_earlier, theta ),                  &
+                  setval_X( mv_earlier, m_v ),                       &
+                  setval_X( mcl_earlier, m_cl ),                     &
+                  setval_X( mci_earlier, m_ci ),                     &
+                  setval_X( mr_earlier, m_r ),                       &
+                  setval_X( ms_earlier, m_s ),                       &
+                  setval_X( mg_earlier, m_g ),                       &
+                  X_times_Y( temperature_earlier, exner_earlier_wth, &
+                             theta_earlier )                         &
                 )
 
-    call log_event( '- Entering add_iau_inc -', log_level_trace )
+    call log_event( '- Entering add_iau_inc -', log_level_debug )
 
     ! Add IAU increments to:
 
     ! Theta
     call invoke( inc_X_plus_bY( theta, iau_weight, theta_inc ) )
 
-    call log_event( '- After theta -', log_level_trace )
-    call print_meanrms_field( theta, log_level_trace )
+    call log_event( '- After theta -', log_level_debug )
+    call print_meanrms_field( theta, log_level_debug )
 
     ! Exner
     call invoke( inc_X_plus_bY( exner, iau_weight, exner_inc ) )
     call map_physics_scalars( exner_wth, exner )
 
-    call log_event( '- After exner -', log_level_trace )
-    call print_meanrms_field( exner, log_level_trace )
+    call log_event( '- After exner -', log_level_debug )
+    call print_meanrms_field( exner, log_level_debug )
 
     ! Wind after transformation from W3 space
     call u % copy_field_properties( u_inc )
@@ -205,23 +223,23 @@ module update_iau_inc_alg_mod
     call set_wind( u_inc, u_in_w3_inc, v_in_w3_inc, upward_wind_tmp )
     call invoke( inc_X_plus_bY( u, iau_weight, u_inc ) )
 
-    call log_event( '- After wind -', log_level_trace )
-    call log_field_minmax( log_level_trace, 'wind', u )
-    call print_meanrms_field( u, log_level_trace, 'wind' )
+    call log_event( '- After wind -', log_level_debug )
+    call log_field_minmax( log_level_debug, 'wind', u )
+    call print_meanrms_field( u, log_level_debug, 'wind' )
 
     ! Humidity mixing ratios
     call iau_humidity_inc( q_inc, qcl_inc, qcf_inc, iau_weight, m_v, m_cl, m_ci, &
                       m_r, m_s, m_g, one_minus_qs, cloud_fields )
 
-    call log_event( '- After iau_humidity_inc -', log_level_trace )
-    call log_field_minmax( log_level_trace, 'm_v', m_v )
-    call log_field_minmax( log_level_trace, 'm_cl', m_cl )
-    call log_field_minmax( log_level_trace, 'm_ci', m_ci )
-    call log_field_minmax( log_level_trace, 'm_r', m_r )
-    call print_meanrms_field( m_v, log_level_trace )
-    call print_meanrms_field( m_cl, log_level_trace )
-    call print_meanrms_field( m_ci, log_level_trace )
-    call print_meanrms_field( m_r, log_level_trace )
+    call log_event( '- After iau_humidity_inc -', log_level_debug )
+    call log_field_minmax( log_level_debug, 'm_v', m_v )
+    call log_field_minmax( log_level_debug, 'm_cl', m_cl )
+    call log_field_minmax( log_level_debug, 'm_ci', m_ci )
+    call log_field_minmax( log_level_debug, 'm_r', m_r )
+    call print_meanrms_field( m_v, log_level_debug )
+    call print_meanrms_field( m_cl, log_level_debug )
+    call print_meanrms_field( m_ci, log_level_debug )
+    call print_meanrms_field( m_r, log_level_debug )
 
     ! PC2 cloud and humidity adjustments
     if ( iau_pc2 ) then
@@ -236,9 +254,9 @@ module update_iau_inc_alg_mod
                                  m_g, mg_earlier,                  &
                                  cloud_fields )
 
-      call log_event( '- After pc2_assimilation -', log_level_trace )
-      call print_minmax_cld( cloud_fields, log_level_trace )
-      call print_meanrms_cld( cloud_fields, log_level_trace )
+      call log_event( '- After pc2_assimilation -', log_level_debug )
+      call print_minmax_cld( cloud_fields, log_level_debug )
+      call print_meanrms_cld( cloud_fields, log_level_debug )
     end if
 
     ! Calculate temperature and exner_wth from updated theta and exner
@@ -252,24 +270,35 @@ module update_iau_inc_alg_mod
                  inc_a_times_X( p_zero, pressure ) &
                )
 
+    ! Updates to surface temperatures from level 1 temperature increment
+    if ( iau_use_level_one_temp ) then
+
+      call level_one_temp_alg( temperature,         &
+                               temperature_earlier, &
+                               surface_fields,      &
+                               soil_fields,         &
+                               snow_fields )
+
+    end if
+
     ! Calculate tropopause level
     call locate_tropopause_alg( trop_level, theta, exner_wth, twod_mesh )
-    call log_event('- After locate tropopause  -', log_level_trace)
-    call log_field_minmax( log_level_trace, 'theta', theta )
-    call log_field_minmax( log_level_trace, 'exner_wth', exner_wth )
-    call print_meanrms_field( theta, log_level_trace )
-    call print_meanrms_field( exner_wth, log_level_trace )
+    call log_event('- After locate tropopause  -', log_level_debug)
+    call log_field_minmax( log_level_debug, 'theta', theta )
+    call log_field_minmax( log_level_debug, 'exner_wth', exner_wth )
+    call print_meanrms_field( theta, log_level_debug )
+    call print_meanrms_field( exner_wth, log_level_debug )
 
     ! Mixing ratios checks: remove supersaturation and constrain humidities
     ! above and below tropopause.
     call iau_humidity_checks( m_v, m_cl, m_ci, m_r, m_s, m_g, cloud_fields, &
                               mv_earlier, temperature, pressure, trop_level )
 
-    call log_event('- After iau_humidity_checks -', log_level_trace)
-    call log_field_minmax( log_level_trace, 'temperature', temperature )
-    call log_field_minmax( log_level_trace, 'pressure', pressure )
-    call print_meanrms_field( temperature, log_level_trace )
-    call print_meanrms_field( pressure, log_level_trace )
+    call log_event('- After iau_humidity_checks -', log_level_debug)
+    call log_field_minmax( log_level_debug, 'temperature', temperature )
+    call log_field_minmax( log_level_debug, 'pressure', pressure )
+    call print_meanrms_field( temperature, log_level_debug )
+    call print_meanrms_field( pressure, log_level_debug )
 
     ! Air density
     if ( iau_wet_density ) then
@@ -278,13 +307,9 @@ module update_iau_inc_alg_mod
       call invoke( inc_X_plus_bY( rho, iau_weight, rho_inc ) )
     end if
 
-    call log_event( '- After dry_rho -', log_level_trace )
-    call log_field_minmax( log_level_trace, 'rho', rho )
-    call print_meanrms_field( rho, log_level_trace )
-
-    nullify( u,rho, theta, exner, m_v, m_cl, m_ci, m_r, m_s, m_g )
-    nullify( u_in_w3_inc, v_in_w3_inc, theta_inc, rho_r2_inc, rho_inc, exner_inc, &
-             q_inc, qcl_inc, qcf_inc )
+    call log_event( '- After dry_rho -', log_level_debug )
+    call log_field_minmax( log_level_debug, 'rho', rho )
+    call print_meanrms_field( rho, log_level_debug )
 
   end subroutine add_iau_inc
 
@@ -301,20 +326,23 @@ module update_iau_inc_alg_mod
     type( mesh_type ),       intent(in), pointer :: twod_mesh
 
     ! Internal variables
-    type( field_collection_type ), pointer :: iau_fields        => null()
-    type( field_collection_type ), pointer :: prognostic_fields => null()
-    type( field_collection_type ), pointer :: cloud_fields      => null()
-    type( field_collection_type ), pointer :: derived_fields    => null()
-    type( field_collection_type ), pointer :: moisture_fields   => null()
-    type( field_array_type ),      pointer :: mr_array          => null()
-    type( field_array_type ),      pointer :: moist_dyn_array   => null()
-    type( field_type ),            pointer :: mr(:)             => null()
-    type( field_type ),            pointer :: moist_dyn(:)      => null()
-    class( model_clock_type ),     pointer :: model_clock       => null()
-    type( field_type ),            pointer :: u                 => null()
-    type( field_type ),            pointer :: theta             => null()
-    type( field_type ),            pointer :: rho               => null()
-    type( field_type ),            pointer :: exner             => null()
+    type( field_collection_type ), pointer :: iau_fields
+    type( field_collection_type ), pointer :: prognostic_fields
+    type( field_collection_type ), pointer :: cloud_fields
+    type( field_collection_type ), pointer :: derived_fields
+    type( field_collection_type ), pointer :: surface_fields
+    type( field_collection_type ), pointer :: soil_fields
+    type( field_collection_type ), pointer :: snow_fields
+    type( field_collection_type ), pointer :: moisture_fields
+    type( field_array_type ),      pointer :: mr_array
+    type( field_array_type ),      pointer :: moist_dyn_array
+    type( field_type ),            pointer :: mr(:)
+    type( field_type ),            pointer :: moist_dyn(:)
+    class( model_clock_type ),     pointer :: model_clock
+    type( field_type ),            pointer :: u
+    type( field_type ),            pointer :: theta
+    type( field_type ),            pointer :: rho
+    type( field_type ),            pointer :: exner
 
 
 
@@ -326,6 +354,9 @@ module update_iau_inc_alg_mod
     prognostic_fields => modeldb%fields%get_field_collection("prognostic_fields")
     cloud_fields => modeldb % model_data % cloud_fields
     derived_fields => modeldb % model_data % derived_fields
+    surface_fields => modeldb % model_data % surface_fields
+    soil_fields => modeldb % model_data % soil_fields
+    snow_fields => modeldb % model_data % snow_fields
 
     ! Getting moisture fields for use downstream
     moisture_fields => modeldb % fields % get_field_collection( "moisture_fields" )
@@ -339,23 +370,25 @@ module update_iau_inc_alg_mod
     call prognostic_fields % get_field( 'rho', rho )
     call prognostic_fields % get_field( 'exner', exner )
 
-    call log_event( '- Minmax and mean/rms prognostic fields before IAU -', log_level_trace )
-    call print_minmax_prog( prognostic_fields, log_level_trace )
-    call print_meanrms_prog( prognostic_fields, log_level_trace )
+    call log_event( '- Minmax and mean/rms prognostic fields before IAU -', log_level_debug )
+    call print_minmax_prog( prognostic_fields, log_level_debug )
+    call print_meanrms_prog( prognostic_fields, log_level_debug )
+    call log_event( '- Minmax and mean/rms IAU increment fields -', log_level_info )
+    call print_minmax_iau( iau_fields, log_level_info )
+    call print_meanrms_iau( iau_fields, log_level_info )
 
-    call add_iau_inc( iau_fields, twod_mesh, prognostic_fields, derived_fields, cloud_fields, model_clock )
+    call add_iau_inc( iau_fields, twod_mesh, prognostic_fields, derived_fields, cloud_fields, &
+                      surface_fields, soil_fields, snow_fields, model_clock )
 
     ! Ensures that all prognostic fields are consistent
     call moist_dyn_factors_alg( moist_dyn, mr )
     call map_physics_fields_alg( u, exner, rho, theta, moist_dyn, derived_fields )
 
-    call log_event( '- Minmax and mean/rms prognostic fields after IAU -', log_level_trace )
-    call print_minmax_prog( prognostic_fields, log_level_trace )
-    call print_meanrms_prog( prognostic_fields, log_level_trace )
-    call print_minmax_cld( cloud_fields, log_level_trace )
-    call print_meanrms_cld( cloud_fields, log_level_trace )
-
-    nullify( u, rho, theta, exner )
+    call log_event( '- Minmax and mean/rms prognostic fields after IAU -', log_level_debug )
+    call print_minmax_prog( prognostic_fields, log_level_debug )
+    call print_meanrms_prog( prognostic_fields, log_level_debug )
+    call print_minmax_cld( cloud_fields, log_level_debug )
+    call print_meanrms_cld( cloud_fields, log_level_debug )
 
   end subroutine update_iau_alg
 
