@@ -204,7 +204,7 @@
         "gungho_model_ex1a_developer"
     ],
     "gungho_model_ex1a_build": [
-        "build_gungho_model_xc40_gnu_fast-debug-64bit",
+        "build_gungho_model_ex1a_gnu_fast-debug-64bit",
     ],
     "gungho_model_ex1a_canned": [
         "gungho_model_canned_ex1a_gnu_fast-debug-64bit",

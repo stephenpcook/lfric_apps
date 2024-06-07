@@ -204,6 +204,22 @@
         "lfric_atm_cbl-BiP64x64-100x100_MG_xc40_intel_production-64bit-rbl32",
     ],
     }) %}
+{# EX1A groups #}
+{% do site_groups.update({
+    "lfric_atm_ex1a_developer": [
+        "lfric_atm_nwp_gal9_debug-C12_ex1a_gnu_fast-debug-64bit",
+        "lfric_atm_ex1a_canned",
+    ],
+    "lfric_atm_ex1a": [
+        "lfric_atm_ex1a_developer",
+    ],
+    "lfric_atm_ex1a_build": [
+        "build_lfric_atm_ex1a_gnu_fast-debug-64bit",
+    ],
+    "lfric_atm_ex1a_canned": [
+        "lfric_atm_canned_ex1a_gnu_fast-debug-64bit",
+    ],
+  }) %}
 
 {# ###################################################################### #}
 {# Platform Generic Groups #}
@@ -250,5 +266,10 @@
 {% do site_groups.xc40.extend(site_groups.lfric_atm_xc40) %}
 {% do site_groups.xc40_performance.extend(site_groups.lfric_atm_xc40_performance) %}
 {% do site_groups.xc40_build.extend(site_groups.lfric_atm_xc40_build) %}
+
+{# EX1A Extends #}
+{% do site_groups.ex1a_developer.extend(site_groups.lfric_atm_ex1a_developer) %}
+{% do site_groups.ex1a.extend(site_groups.lfric_atm_ex1a) %}
+{% do site_groups.ex1a_build.extend(site_groups.lfric_atm_ex1a_build) %}
 
 {% do LOG.debug("Finished in site/meto/groups/groups_lfric_atm.cylc") %}

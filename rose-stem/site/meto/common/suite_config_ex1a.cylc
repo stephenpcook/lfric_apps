@@ -24,6 +24,7 @@
             HYPERTHREADS    = 1
             CORES_PER_NODE  = 128
             NUMA_REGIONS_PER_NODE = 2
+            LUSTRE_FILESYSTEM = true
 
     [[EX1A_SHARED_QUEUE]]
         [[[environment]]]
@@ -43,9 +44,8 @@
     [[EX1A_RUN]]
         inherit=EX1A_NORMAL_QUEUE
         [[[environment]]]
-            {# Big Data Dir will be under the lfricadmin account #}
-            {# When this is available this variable will need setting #}
-            BIG_DATA_DIR = ''
+            {# BIG_DATA_DIR holds ancils and dump files #}
+            BIG_DATA_DIR = '/common/internal/lfricdir/data'
             TARGET_PLATFORM = 'meto-ex1a'
             RUN_METHOD = 'mpiexec'
         [[[directives]]]

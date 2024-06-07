@@ -71,7 +71,7 @@
 
 {# Choose EX Host - default of exz #}
 {% if USE_EXZ is defined and USE_EXZ %}
-    {% do site-vars.update({"host_ex" : "exz"}) %}
+    {% do site_vars.update({"host_ex" : "exz"}) %}
 {% elif USE_EX is defined and USE_EX %}
     {# Should choose between ab or cd eventually #}
     {# Hardcoded to ab for now #}
