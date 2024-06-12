@@ -133,6 +133,15 @@
     {% endif %}
 {% endif %}
 
+{# Do we need to run an perftools export? #}
+{# Checks the task name is a run and not a mesh, and the compiler contains perftools #}
+{% set perftools = false %}
+{% if task.startswith("run") and task_ns.application != "mesh" %}
+    {% if "perftools" in task_ns.compiler %}
+       {% set perftools = true %}
+    {% endif %}
+{% endif %}
+
 {# ################################### #}
 {# Create the graph - only for 1 cycle #}
 {# ################################### #}
@@ -167,7 +176,9 @@
                 application_run_task]) %}
         {% endif %}
     {% endif %}
-
+{#Maybe emulate one of these for the perftools? We could do the whole thing this way round#}
+{#but that would require a slight rewrite of the build susystem checks#}
+{#but thats doable - always ref the same thing#}
     {% if checksum_kgo %}
         {% set checksum_task = "check_"~
                                task_ns.application~"_"~
@@ -211,6 +222,21 @@
         {% do graph_sections.append([
             application_run_task,
             phystest_task]) %}
+    {% endif %}
+
+    {% if perftools %}
+        {% set app_perftools_export_task = "perftools-export_"~
+                                            task_ns.application~"_"~
+                                            task_ns.conf_name~"_"~
+                                            task_ns.platform~"_"~
+                                            task_ns.compiler~"_"~
+                                            task_ns.extras %}
+        {% if app_perftools_export_task not in tasks_to_run %}
+            {% do tasks_to_run.update({app_perftools_export_task: task_values}) %}
+        {% endif %}
+        {% do graph_sections.append([
+            application_run_task,
+            app_perftools_export_task]) %}
     {% endif %}
 {% endif %}
 

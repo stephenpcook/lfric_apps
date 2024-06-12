@@ -61,6 +61,7 @@
     "xc40_integration_tests": [],
     "ex1a_integration_tests": [],
     "xc40_performance": [],
+
     }) %}
 
 {% include "site/meto/groups/groups_adjoint_tests.cylc" %}

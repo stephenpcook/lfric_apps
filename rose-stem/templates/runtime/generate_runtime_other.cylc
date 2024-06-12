@@ -81,6 +81,29 @@
             PHYSTEST_DIR = {{task_output_dir}}
             PHYSTEST_SCRIPT = {{task_values["phystest_str"]}}
 
+{% elif task.startswith("perftools") %}
+{# Perftools Tasks #}
+
+    {% set previous_job = "run_"~
+                          task_ns.application~"_"~
+                          task_ns.conf_name~"_"~
+                          task_ns.platform~"_"~
+                          task_ns.compiler~"_"~
+                          task_ns.extras %}
+    {# We want to inherrit this: <SITE>_RUN_PERFTOOLS-<COMPILER> #}
+    {% set family_perftools = task_ns.platform~"_run_"~
+                              task_ns.compiler %}
+
+    [[{{task}}]]
+        inherit={{family_perftools|upper}}
+        script = rose task-run --app-key=perftools_export
+        [[[environment]]]
+            PREVIOUS_WORKING_DIR=$SOURCE_ROOT/../../work/1/{{previous_job}}
+            THE_APP_NAME={{task_ns.application}}
+            APP_CONFIGURATION_OUTPUT={{task_ns.application}}_{{task_ns.conf_name}}
+
 {% endif %}
+
+
 
 {% do LOG.debug("Finished in templates/runtime/generate_runtime_other.cylc") %}

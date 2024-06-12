@@ -63,6 +63,13 @@
         'cp $CYLC_TASK_WORK_DIR/timer.txt $TASK_OUTPUT_DIR || true'
     ] %}
 
+{# Check to see if it is a Perftools application run, as we need to change the binary target#}
+{% set PAT_EXE_EXTEN ='' %}
+{% if SITE~"-"~task_ns.platform == 'meto-xc40' %}
+    {% if 'perftools' in task_ns.compiler %}
+        {%  set PAT_EXE_EXTEN ='+pat' %}
+    {% endif %}
+{% endif %}
 
 {# Define the task runtime section #}
     [[{{task}}]]
@@ -105,10 +112,11 @@
             XIOS_SERVER_RANKS     = {{task_values["xios_server_ranks"]}}
             xios_nodes            = {{task_values["xios_nodes"]}}
             mpi_parts_xios        = {{task_values["mpi_parts_xios"]}}
+            PAT_EXE_EXTEN         = {{PAT_EXE_EXTEN}}
+
 {% if task_ns.application == "lfric_coupled" %}
     {% include "templates/runtime/coupled_task_environment.cylc" %}
 {% endif %}
-
 
 {# Set any directives using macros imported in generate_runtime for this platform #}
         [[[directives]]]

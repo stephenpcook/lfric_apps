@@ -23,6 +23,19 @@
     {% set psyclone_transformation = task_values["psyclone_transformation"] %}
 {% endif %}
 
+{# Check to see if it is a Perftools compile, as we need to change the Makefile target#}
+{%- set BUILD_TARGET  = "build" -%}
+{%  set PAT_BUILD_APP = "" %}
+{# Meto site specific perftools#}
+{%- if SITE == 'meto'%}
+    {%- if SITE~"-"~task_ns.platform == 'meto-xc40' %}
+        {%- if 'perftools' in task_ns.compiler %}
+            {%- set BUILD_TARGET  = "pat_build" -%}
+            {%- set PAT_BUILD_APP = "$LAUNCH_SCRIPT/launch_pat_build" -%}
+        {%- endif %}
+    {%- endif %}
+{%- endif %}
+
     [[{{task}}]]
         inherit={{inherit.str|upper}}
         script = 'module list; rose task-run --app-key=compile'
@@ -36,7 +49,7 @@
             MOD_DIR                 = {{mod_dir}}
             MESH_DIR                = {{mesh_dir}}
             WORKING_DIR             = {{working_dir}}
-            TARGET                  = build
+            TARGET                  = {{BUILD_TARGET}}
             PROFILE                 = {{task_values["optlevel"]}}
             PSYCLONE_TRANSFORMATION = {{psyclone_transformation}}
             UM_FCM_TARGET_PLATFORM  = {{SITE}}-{{task_ns.platform}}
@@ -46,6 +59,7 @@
             R_TRAN_PRECISION        = {{task_values["precision"]["rtran"]}}
             R_BL_PRECISION          = {{task_values["precision"]["rbl"]}}
             PRE_PROCESS_MACROS      = {{task_values["pre_process_macros"]}}
+            PAT_BUILD_PATH          = {{PAT_BUILD_APP}}
 
         [[[directives]]]
 

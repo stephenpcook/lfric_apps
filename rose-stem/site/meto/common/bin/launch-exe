@@ -4,7 +4,7 @@
 # The file LICENCE, distributed with this code, contains details of the terms
 # under which the code may be used.
 
-EXEC_PATH="${BIN_DIR}/${EXEC_NAME}"
+EXEC_PATH="${BIN_DIR}/${EXEC_NAME}${PAT_EXE_EXTEN}"
 NAMELIST_FILE=configuration.nml
 XIOS_SERVER_EXEC_PATH="xios_server.exe"
 SLURM_MPMD_FILE="lfric_xios_mpmd"

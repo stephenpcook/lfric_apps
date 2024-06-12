@@ -7,4 +7,9 @@
 
 {% include 'site/'+SITE+'/gungho_model/tasks_gungho_model_'~task_ns.platform~'.cylc' %}
 
+{% if "perftools" in task_ns.compiler %}
+    {% do task_dict.update({
+        "kgo_checks": [], }) %}
+{% endif %}
+
 {% do LOG.debug("Finised in site/meto/gungho_model/tasks_gungho_model.cylc") %}

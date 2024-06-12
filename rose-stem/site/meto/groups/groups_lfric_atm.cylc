@@ -75,6 +75,10 @@
     "lfric_atm_spice_build": [
         "build_lfric_atm_spice_intel_fast-debug-64bit",
     ],
+    "lfric_atm_xc40_perftools":[
+        "lfric_atm_nwp_gal9-C48_MG_xc40_perftools-intel_fast-debug-64bit",
+        "lfric_atm_nwp_gal9-C48_MG_xc40_intel_fast-debug-64bit",
+    ],
     }) %}
 
 {# ###################################################################### #}

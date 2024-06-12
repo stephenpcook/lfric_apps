@@ -192,6 +192,10 @@
         "gungho_model_cart-bell_3d_xc40_intel_fast-debug-64bit",
         "gungho_model_cart-warm3dbubble_xc40_intel_fast-debug-64bit",
     ],
+    "gungho_model_xc40_perftools":[
+        "gungho_model_baroclinic-noio-C24_MG_xc40_perftools-intel_fast-debug-64bit",
+        "gungho_model_baroclinic-noio-C24_MG_xc40_intel_fast-debug-64bit",
+    ],
     }) %}
 
 {# EX1A groups #}

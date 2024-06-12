@@ -22,6 +22,14 @@
 
 {% set xc40_tech = 'module load meto-common/lfric/17 ; '~
                    'module load cray-snplauncher/$CRAY_MPICH2_VER' %}
+{% if site_vars["meto_xc40"] == "xcs" or site_vars["meto_xc40"] == "xcsc" %}
+    {% set xc40_tech = 'module load meto-common-environment/lfric/17 ; '~
+                        'module load cray-snplauncher/$CRAY_MPICH2_VER' %}
+{% endif %}
+
+
+{% set xc40_compiler_perftools_intel = 'module load meto-environment/lfric-perftools/intel/17.0.0.098/2' %}
+
 
     [[XC40_BASE]]
         platform = {{site_vars["meto_xc40"]}}
@@ -69,6 +77,10 @@
         [[[environment]]]
             COMPILER = 'intel'
 
+    [[XC40_PERFTOOLS-INTEL]]
+        [[[environment]]]
+            COMPILER = 'perftools-intel'
+
     [[XC40_CCE]]
         [[[environment]]]
             COMPILER = 'cray'
@@ -77,6 +89,10 @@
         inherit=XC40_BASE,XC40_BUILD,XC40_INTEL
         {{ generate_script("pre-script", [xc40_base, xc40_compiler_intel]) }}
 
+    [[XC40_BUILD_PERFTOOLS-INTEL]]
+        inherit=XC40_BASE,XC40_BUILD,XC40_PERFTOOLS-INTEL
+        {{ generate_script("pre-script", [xc40_base, xc40_compiler_perftools_intel]) }}
+
     [[XC40_BUILD_CCE]]
         inherit=XC40_BASE,XC40_BUILD,XC40_CCE
         {{ generate_script("pre-script", [xc40_base, xc40_compiler_cce]) }}
@@ -84,6 +100,10 @@
     [[XC40_RUN_INTEL]]
         inherit=XC40_BASE,XC40_RUN,XC40_INTEL
         {{ generate_script("pre-script", [xc40_base, xc40_compiler_intel]) }}
+
+    [[XC40_RUN_PERFTOOLS-INTEL]]
+        inherit=XC40_BASE,XC40_RUN,XC40_PERFTOOLS-INTEL
+        {{ generate_script("pre-script", [xc40_base, xc40_compiler_perftools_intel]) }}
 
     [[XC40_RUN_CCE]]
         inherit=XC40_BASE,XC40_RUN,XC40_CCE
@@ -98,6 +118,13 @@
 
     [[XC40_MESH_INTEL]]
         inherit=XC40_INTEL,XC40_MESH
+        {{ generate_script("pre-script", [xc40_base,
+                                          xc40_compiler_intel,
+                                          xc40_scitools,
+                                          xc40_tech]) }}
+
+    [[XC40_MESH_PERFTOOLS-INTEL]]
+        inherit=XC40_PERFTOOLS-INTEL,XC40_MESH
         {{ generate_script("pre-script", [xc40_base,
                                           xc40_compiler_intel,
                                           xc40_scitools,
@@ -123,6 +150,10 @@
     [[XC40_TECH_TESTS_INTEL]]
         inherit=XC40_TECH_TESTS,XC40_INTEL
         {{ generate_script("pre-script", [xc40_base, xc40_compiler_intel, xc40_tech]) }}
+
+    [[XC40_TECH_TESTS_PERFTOOLS-INTEL]]
+        inherit=XC40_TECH_TESTS,XC40_PERFTOOLS-INTEL
+        {{ generate_script("pre-script", [xc40_base, xc40_compiler_perftools_intel, xc40_tech]) }}
 
     [[XC40_TECH_TESTS_CCE]]
         inherit=XC40_TECH_TESTS,XC40_CCE

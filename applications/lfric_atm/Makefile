@@ -144,6 +144,20 @@ build: ALWAYS
 	$(call MESSAGE,=========================================================)
 	$Q$(MAKE) $(QUIET_ARG) -C $(WORKING_DIR) -f $(LFRIC_BUILD)/compile.mk
 
+
+##############################################################################
+# Pat_build step - This runs after the build step as relies on exe
+
+# Pass $(PROJECT_NAME) which is exe name lfric_atm which pat_report needs
+pat_build: build
+	$(call MESSAGE,=========================================================)
+	$(call MESSAGE, Begin Pat Build of $(PROJECT_NAME) executable)
+	$(call MESSAGE,=========================================================)
+	bash $(PAT_BUILD_PATH) $(PROJECT_NAME)
+	$(call MESSAGE,=========================================================)
+	$(call MESSAGE, Pat Build of $(PROJECT_NAME) complete as $(PROJECT_NAME)+pat)
+	$(call MESSAGE,=========================================================)
+
 ##############################################################################
 # Unit tests
 #
