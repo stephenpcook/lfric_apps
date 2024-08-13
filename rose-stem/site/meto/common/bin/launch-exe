@@ -39,7 +39,9 @@ if [ "${RUN_METHOD}" = "aprun" ] ; then
     LAUNCHER_OPTS="-cc depth -n ${TOTAL_RANKS} -S ${MPI_TASKS_PER_NUMA_REGION} -d ${OMP_NUM_THREADS} -j ${HYPERTHREADS}"
   fi
 elif [ "${RUN_METHOD}" = "mpiexec" ] ; then
-  if [ "${SITE_MPI_LAUNCHER_OPTS}" != "" ] ; then
+  if [ "${TARGET_PLATFORM}" = "meto-ex1a" ] ; then
+    LAUNCHER_OPTS="--cpu-bind=depth --np ${TOTAL_RANKS} --ppn ${CORES_PER_NODE} --depth ${OMP_NUM_THREADS}"
+  elif [ "${SITE_MPI_LAUNCHER_OPTS}" != "" ] ; then
     LAUNCHER_OPTS=${SITE_MPI_LAUNCHER_OPTS}
   else
     LAUNCHER_OPTS="-n ${TOTAL_RANKS}"
@@ -61,10 +63,14 @@ if [[ ! -z "${XIOS_SERVER_MODE}" && "${XIOS_SERVER_MODE}" = "True" ]] ; then
     NAMELIST_FILE=""
     XIOS_EXEC=""
   else
+    XIOS_CORES_PER_NODE="$(( (mpi_parts_xios+xios_nodes-1) / xios_nodes ))"
     if [ "${TARGET_PLATFORM}" = "meto-spice" ] ; then
       XIOS_EXEC=" : -n ${XIOS_SERVER_RANKS} ${XIOS_SERVER_EXEC_PATH}"
+    elif [ "${TARGET_PLATFORM}" = "meto-ex1a" ] ; then
+      if [ "${RUN_METHOD}" = "mpiexec" ] ; then
+        XIOS_EXEC=" : --cpu-bind=depth --np ${XIOS_SERVER_RANKS} --ppn ${CORES_PER_NODE} ${XIOS_SERVER_EXEC_PATH}"
+      fi
     else
-      XIOS_CORES_PER_NODE="$(( (mpi_parts_xios+xios_nodes-1) / xios_nodes ))"
       XIOS_CORES_PER_NUMA="$(( (XIOS_CORES_PER_NODE+NUMA_REGIONS_PER_NODE-1) / NUMA_REGIONS_PER_NODE ))"
       XIOS_EXEC=" : -n ${XIOS_SERVER_RANKS} -S ${XIOS_CORES_PER_NUMA} ${XIOS_SERVER_EXEC_PATH}"
     fi
