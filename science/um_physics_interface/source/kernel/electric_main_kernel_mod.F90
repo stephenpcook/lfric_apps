@@ -122,8 +122,8 @@ subroutine electric_main_code(nlayers, mi_wth, ms_wth, mg_wth, temp_in_wth,    &
     !-----------------------
     integer(kind=i_def), intent(in) :: nlayers
     integer(kind=i_def), intent(in) :: undf_wth, undf_2d, ndf_wth, ndf_2d
-    integer(kind=i_def), intent(in), dimension(undf_wth) :: map_wth
-    integer(kind=i_def), intent(in), dimension(undf_2d) :: map_2d
+    integer(kind=i_def), intent(in), dimension(ndf_wth) :: map_wth
+    integer(kind=i_def), intent(in), dimension(ndf_2d) :: map_2d
 
     real(kind=r_def), intent(in), dimension(undf_wth) :: mi_wth ! ice mmr
     real(kind=r_def), intent(in), dimension(undf_wth) :: ms_wth ! snow mmr
@@ -156,11 +156,15 @@ subroutine electric_main_code(nlayers, mi_wth, ms_wth, mg_wth, temp_in_wth,    &
     real(r_um), dimension(1,1,nlayers) :: qcf_tot_work
     real(r_um), dimension(1,1,nlayers) :: qgraup_work
     real(r_um), dimension(1,1,nlayers) :: t_work
-    real(r_um), dimension(1,1,nlayers) :: w_work
+    real(r_um), dimension(1,1,0:nlayers) :: w_work
 
     real(r_um), dimension(1,1) :: fr1_mc_work, fr2_mc_work
     real(r_um), dimension(1,1) :: gwp_work, tiwp_work
     real(r_um), dimension(1,1) :: total_fr_work
+
+    ! Minimum flash potential carried
+    real(r_um), parameter :: flashmin = 1.0e-10_r_def
+    real(r_um) :: flash_pot
 
     integer(i_um) :: k, nspts
 
@@ -220,23 +224,38 @@ subroutine electric_main_code(nlayers, mi_wth, ms_wth, mg_wth, temp_in_wth,    &
     ! In the UM this is done in the distribute_flash subroutine, but for LFRic
     ! the process can be made much simpler and is done in the loops below.
     !---------------------------------------------------------------------------
-    total_fr_work(1,1) = flash_potential(map_2d(1)) +                          &
-                       ( total_fr_work(1,1) * dt )
+    flash_pot = flash_potential(map_2d(1)) + ( total_fr_work(1,1) * dt )
 
-    if (total_fr_work(1,1) >= 1.0_r_def) then
-      ! Flash rate is sufficient to discharge lightning flashes
-      num_flashes_2d(map_2d(1)) = real(floor(total_fr_work(1,1)))
+    if (storm_field_work(1,1)) then
 
-      ! Pass the residual lightning flash rate into the prognostic
-      flash_potential(map_2d(1)) = flash_potential(map_2d(1))                 &
-                                 - num_flashes_2d(map_2d(1))
+      if (flash_pot >= 1.0_r_def) then
+        ! Flash rate is sufficient to discharge lightning flashes
+        num_flashes_2d(map_2d(1)) = real(floor(flash_pot))
+        flash_pot = flash_pot - num_flashes_2d(map_2d(1))
+      else
+        ! Flash rate is zero
+        num_flashes_2d(map_2d(1)) = 0.0_r_def
+      end if
+
     else
+
       ! Flash rate is zero
       num_flashes_2d(map_2d(1)) = 0.0_r_def
 
-      ! Increment flash potential to 'charge up' for a future timestep
-      flash_potential(map_2d(1)) = flash_potential(map_2d(1))                 &
-                                 + total_fr_work(1,1)
+      ! If this point is not defined as a storm, then by definition
+      ! no charging can take place. Therefore, set the flash potential
+      ! to zero. This prevents any unused flash from older storms which
+      ! passed over this grid box many timesteps ago contributing to the
+      ! present lightning flash.
+      flash_pot = 0.0_r_def
+
+    end if
+
+    ! Update prognostic flash potential
+    if (flash_pot >= flashmin) then
+      flash_potential(map_2d(1)) = flash_pot
+    else
+      flash_potential(map_2d(1)) = 0.0_r_def
     end if
 
     !--------------------------------------------------

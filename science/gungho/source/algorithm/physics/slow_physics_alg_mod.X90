@@ -242,7 +242,7 @@ contains
     type( field_type ) :: tile_swinc_diffuse_albedo, tile_swinc_direct_albedo
     ! ...for electric
     type( field_type ) :: mr_electric(nummr)
-    type( field_type ), pointer :: theta_electric => null()
+    type( field_type ) :: theta_electric
     ! ...for radiation
     logical( kind=l_def ) :: rad_this_tstep, rad_inc_this_tstep
     logical( kind=l_def ) :: cosp_this_tstep
@@ -532,6 +532,7 @@ contains
       call add_bundle(mr_n, dmr_mphys, mr_electric, nummr)
 
       ! Update theta due to microphysics
+      call theta%copy_field_properties(theta_electric)
       call invoke(X_plus_Y(theta_electric, theta, dtheta_mphys))
 
       ! Finally, call electric_main_alg with the quantities updated
