@@ -276,6 +276,14 @@ contains
          forced_cu_fac, i_pc2_conv_coupling, allicetdegc, starticetkelvin, &
          l_bm_ez_subcrit_only, ez_max_bm, l_pc2_homog_conv_pressure
     use cloud_config_mod, only: cld_fsd_hill
+    use comorph_um_namelist_mod, only: ass_min_radius, autoc_opt,            &
+         cf_conv_fac, coef_auto, col_eff_coef, core_ent_fac, drag_coef_cond, &
+         drag_coef_par, ent_coef, hetnuc_temp, l_core_ent_cmr,               &
+         n_dndraft_types, overlap_power, par_gen_core_fac, par_gen_mass_fac, &
+         par_gen_pert_fac, par_gen_rhpert, par_radius_evol_method,           &
+         par_radius_init_method, par_radius_knob, par_radius_knob_max,       &
+         par_radius_ppn_max, r_fac_tdep_n, rain_area_min, rho_rim,           &
+         vent_factor, wind_w_buoy_fac, wind_w_fac, check_run_comorph
     use cv_run_mod, only: icvdiag, cvdiag_inv, cvdiag_sh_wtest,            &
          limit_pert_opt, tv1_sd_opt, iconv_congestus, iconv_deep,          &
          ent_fac_dp, cldbase_opt_dp, cldbase_opt_sh, w_cape_limit,         &
@@ -698,6 +706,39 @@ contains
         l_mom       = .true.
         l_ccrad     = .true.
         l_3d_cca    = .true.
+
+        ! main Comorph options
+        ass_min_radius = 500.0_r_um
+        autoc_opt = 2
+        cf_conv_fac = 2.0_r_um
+        coef_auto = 0.025_r_um
+        col_eff_coef = 1.0_r_um
+        core_ent_fac = 1.0_r_um
+        drag_coef_cond = 0.5_r_um
+        drag_coef_par = 0.5_r_um
+        ent_coef = 0.2_r_um
+        hetnuc_temp = 263.0_r_um
+        l_core_ent_cmr = .true.
+        n_dndraft_types = 1
+        overlap_power = 0.5_r_um
+        par_gen_core_fac = 3.0_r_um
+        par_gen_mass_fac = par_gen_mass_fac_in
+        par_gen_pert_fac = 0.333_r_um
+        par_gen_rhpert = par_gen_rhpert_in
+        par_radius_evol_method = 3
+        par_radius_init_method = 4
+        par_radius_knob = 0.45_r_um
+        par_radius_knob_max = 2.0_r_um
+        par_radius_ppn_max = par_radius_ppn_max_in
+        r_fac_tdep_n = 8.18_r_um
+        rain_area_min = 0.05_r_um
+        rho_rim = 600.0_r_um
+        vent_factor = 0.25_r_um
+        wind_w_buoy_fac = 1.0_r_um
+        wind_w_fac = 1.0_r_um
+
+        ! check the namelist
+        call check_run_comorph()
 
       case(cv_scheme_gregory_rowntree)
 

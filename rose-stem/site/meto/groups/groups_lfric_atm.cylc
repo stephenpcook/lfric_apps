@@ -38,6 +38,7 @@
     ],
     "lfric_atm_scm_spice_developer": [
         "lfric_atm_scm_gal9_bomex-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
+        "lfric_atm_scm_coma9_bomex-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_cbl_dry-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_comp_tran_ref-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_dice2-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
@@ -46,6 +47,7 @@
         "lfric_atm_scm_gal9_seaice-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_snow-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_toga-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
+        "lfric_atm_scm_coma9_toga-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_llcs-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_rad_gas-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
         "lfric_atm_scm_ral3_constrain-BiP2x2-50000x50000_spice_intel_fast-debug-64bit",
@@ -114,6 +116,7 @@
         "lfric_atm_nwp_gal9_ls_and_jedi-C12_xc40_intel_fast-debug-64bit",
         "lfric_atm_nwp_gal9_debug-C48_MG_xc40_intel_full-debug-64bit",
         "lfric_atm_nwp_casim-C12_xc40_intel_fast-debug-64bit",
+        "lfric_atm_nwp_coma9-C12_xc40_intel_fast-debug-64bit",
     ],
     "lfric_atm_nwp_xc40": [
         "lfric_atm_nwp_xc40_developer",
@@ -135,6 +138,7 @@
     ],
     "lfric_atm_scm_xc40_developer": [
         "lfric_atm_scm_gal9_bomex-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
+        "lfric_atm_scm_coma9_bomex-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_cbl_dry-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_comp_tran_ref-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_dice2-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
@@ -143,6 +147,7 @@
         "lfric_atm_scm_gal9_seaice-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_snow-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_gal9_toga-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
+        "lfric_atm_scm_coma9_toga-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_llcs-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_rad_gas-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",
         "lfric_atm_scm_ral3_constrain-BiP2x2-50000x50000_xc40_intel_fast-debug-64bit",

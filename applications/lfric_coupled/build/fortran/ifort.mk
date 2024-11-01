@@ -20,6 +20,7 @@ FFLAGS_FORTRAN_STANDARD   =
 # openMP has also been removed from this routine via the optimisation script
 %bl_imp_alg_mod_psy.o %bl_imp_alg_mod_psy.mod:   private FFLAGS_EXTRA =
 %aerosol_ukca_alg_mod_psy.o %aerosol_ukca_alg_mod_psy.mod:   private FFLAGS_EXTRA =
+%conv_comorph_alg_mod_psy.o %conv_comorph_alg_mod_psy.mod:   private FFLAGS_EXTRA =
 
 $(info LFRic compile options required for files with OpenMP - see Ticket 1490)
 %psy.o %psy.mod:   private export FFLAGS_EXTRA += $(FFLAGS_INTEL_FIX_ARG)

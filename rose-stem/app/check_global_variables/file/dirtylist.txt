@@ -59,11 +59,13 @@ apps/science/um_physics_interface/source/diagnostics/bl_imp_diags_mod.x90
 apps/science/um_physics_interface/source/diagnostics/casim_diagnostics_mod.x90
 apps/science/um_physics_interface/source/diagnostics/cld_diags_mod.x90
 apps/science/um_physics_interface/source/diagnostics/conv_diags_mod.x90
+apps/science/um_physics_interface/source/diagnostics/comorph_diags_mod.x90
 apps/science/um_physics_interface/source/diagnostics/electric_main_diags_mod.x90
 apps/science/um_physics_interface/source/diagnostics/mphys_diagnostics_mod.x90
 apps/science/um_physics_interface/source/diagnostics/orographic_drag_diags_mod.x90
 apps/science/um_physics_interface/source/diagnostics/spectral_gwd_diags_mod.x90
 apps/science/um_physics_interface/source/kernel/conv_gr_kernel_mod.F90
+apps/science/um_physics_interface/source/kernel/conv_comorph_kernel_mod.F90
 apps/science/um_physics_interface/source/kernel/methox_kernel_mod.F90
 apps/science/um_physics_interface/source/support/um_physics_init_mod.f90
 apps/science/um_physics_interface/source/support/um_read_radaer_lut_mod.f90
