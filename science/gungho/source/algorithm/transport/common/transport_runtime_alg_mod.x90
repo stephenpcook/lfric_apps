@@ -87,9 +87,9 @@ module transport_runtime_alg_mod
                                             split_method_null
 
   use copy_field_alg_mod,             only: copy_field
-  use psykal_lite_transport_mod,      only: invoke_deep_X_times_Y, &
-                                            invoke_ffsl_panel_swap_kernel_type
+  use psykal_lite_transport_mod,      only: invoke_deep_X_times_Y
   use lipschitz_diag_alg_mod,         only: lipschitz_diag_alg
+  use ffsl_panel_swap_kernel_mod,     only: ffsl_panel_swap_kernel_type
 
   implicit none
 
@@ -355,6 +355,7 @@ contains
     integer(kind=i_def)              :: mesh_idx, num_compute_meshes
     integer(kind=i_def)              :: n_steps, n_meshes, i_coef, step
     integer(kind=i_def)              :: n_steps_with_substep, np1_steps_with_substep
+    integer(kind=i_def)              :: halo_depth
     type(mesh_type),         pointer :: mesh => null()
     type(local_mesh_type),   pointer :: local_mesh => null()
     type(r_tran_field_type), pointer :: wind_n   => null()
@@ -1326,9 +1327,10 @@ contains
 
             ! Swap the halo values of adv_detj_x and adv_detj_y here
             if (topology == topology_fully_periodic .AND. geometry == geometry_spherical) then
-              call invoke_ffsl_panel_swap_kernel_type(self%detj_unity_x(mesh_idx, step), &
-                                                      self%detj_unity_y(mesh_idx, step), &
-                                                      panel_id, tmp_mesh%get_halo_depth() )
+              halo_depth = tmp_mesh%get_halo_depth()
+              call invoke( ffsl_panel_swap_kernel_type(self%detj_unity_x(mesh_idx, step), &
+                                                       self%detj_unity_y(mesh_idx, step), &
+                                                       panel_id, halo_depth ) )
             end if
 
             ! Compute fractional wind and departure points from transported unity
@@ -2274,7 +2276,7 @@ contains
     use vert_dep_dist_ffsl_kernel_mod,        only: vert_dep_dist_ffsl_kernel_type
     use departure_points_config_mod,          only: horizontal_limit, &
                                                     horizontal_limit_cap
-    use psykal_lite_transport_mod,            only: invoke_ffsl_panel_swap_kernel_type
+    use ffsl_panel_swap_kernel_mod,           only: ffsl_panel_swap_kernel_type
 
     implicit none
 
@@ -2404,10 +2406,10 @@ contains
                 ! Swap the halo values of dry_mass_x and dry_mass_y here: this
                 ! reduces the number of different kernels required by FFSL
                 max_stencil_extent = get_required_stencil_depth()
-                call invoke_ffsl_panel_swap_kernel_type(dry_mass_x, &
-                                                        dry_mass_y, &
-                                                        panel_id,   &
-                                                        max_stencil_extent)
+                call invoke( ffsl_panel_swap_kernel_type(dry_mass_x, &
+                                                         dry_mass_y, &
+                                                         panel_id,   &
+                                                         max_stencil_extent) )
               end if
 
             ! Compute tracer departure points

@@ -11,16 +11,16 @@
 module remap_on_extended_mesh_kernel_mod
 
 use kernel_mod,        only: kernel_type
-use argument_mod,      only: arg_type, func_type,       &
-                             GH_FIELD, GH_SCALAR,       &
-                             GH_REAL, GH_INTEGER,       &
-                             GH_LOGICAL,                &
-                             GH_READ, GH_WRITE,         &
-                             ANY_DISCONTINUOUS_SPACE_1, &
-                             ANY_DISCONTINUOUS_SPACE_2, &
-                             ANY_DISCONTINUOUS_SPACE_3, &
-                             GH_BASIS, CELL_COLUMN,     &
-                             STENCIL, CROSS2D,          &
+use argument_mod,      only: arg_type, func_type,        &
+                             GH_FIELD, GH_SCALAR,        &
+                             GH_REAL, GH_INTEGER,        &
+                             GH_LOGICAL,                 &
+                             GH_READ, GH_WRITE,          &
+                             ANY_DISCONTINUOUS_SPACE_1,  &
+                             ANY_DISCONTINUOUS_SPACE_2,  &
+                             ANY_DISCONTINUOUS_SPACE_3,  &
+                             GH_BASIS, HALO_CELL_COLUMN, &
+                             STENCIL, CROSS2D,           &
                              GH_EVALUATOR
 use constants_mod,     only: r_def, r_tran, i_def, l_def, LARGE_REAL_POSITIVE
 use fs_continuity_mod, only: Wchi
@@ -46,7 +46,7 @@ type, public, extends(kernel_type) :: remap_on_extended_mesh_kernel_type
        arg_type(GH_SCALAR,  GH_LOGICAL, GH_READ),                                               &
        arg_type(GH_SCALAR,  GH_REAL,    GH_READ)                                                &
        /)
-  integer :: operates_on = CELL_COLUMN
+  integer :: operates_on = HALO_CELL_COLUMN
 contains
   procedure, nopass :: remap_on_extended_mesh_code
 end type

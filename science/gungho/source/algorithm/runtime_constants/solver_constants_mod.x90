@@ -101,6 +101,7 @@ contains
     integer(kind=i_def),       intent(in) :: mesh_id
     type(mesh_type),              pointer :: mesh
     logical(kind=l_def)                   :: constant_exists
+    integer(kind=i_def)                   :: halo_depth
     type(r_solver_field_type),    pointer :: detj_r_solver
     type(field_type),             pointer :: chi(:)
     type(field_type),             pointer :: panel_id
@@ -125,7 +126,9 @@ contains
       w3_fs => function_space_collection%get_fs(mesh, element_order, W3)
       call detj_at_w3_r_solver_inventory%add_field(detj_r_solver, w3_fs, mesh)
 
-      call invoke( calc_detj_at_w3_kernel_type(detj_r_solver, chi, panel_id) )
+      halo_depth = 0  ! No need to calculate into halos
+      call invoke( calc_detj_at_w3_kernel_type(detj_r_solver, chi, panel_id,   &
+                                               halo_depth) )
       if ( subroutine_timers ) call timer('runtime_constants.solver')
     end if
 

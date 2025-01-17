@@ -36,19 +36,15 @@ contains
 ! EXTENDED MESH ROUTINES
 ! ============================================================================ !
 ! These need psykal_lite implementation because they:
-! - loop over only halo cells
-! - need to mark the fields as clean afterwards, so that the values in the halo
-!   cells don't get overwritten
+! - loop over halo cells *and* use stencils. This is described by PSyclone issue
+!   #2781
 ! It may be possible to implement some of these routines without psykal_lite
 ! code by doing redundant computation (ticket #4302)
 
 !>@brief Remap a scalar field from the standard cubed sphere mesh onto an extended
 !!       mesh
-!!       This routine loops only over halo cells (and always to the full
-!!       depth of the halo). It is not clear if this functionality will ever
-!!       be supported by psyclone or if it should be treated as a special
-!!       case (as with computation of coordinate fields). Issue 2300 has been
-!!       opened to investigate this.
+!!       This routine loops only over halo cells and uses stencils, which is not
+!!       currently correctly supported by PSyclone (issue #2781 describes this)
 subroutine invoke_init_remap_on_extended_mesh_kernel_type(remap_weights, remap_indices, &
                                                           chi_ext, chi, chi_stencil_depth, &
                                                           panel_id, pid_stencil_depth, &
@@ -204,11 +200,8 @@ end subroutine invoke_init_remap_on_extended_mesh_kernel_type
 
 !>@brief Remap a scalar field from the standard cubed sphere mesh onto an extended
 !!       mesh
-!!       This routine loops only over halo cells (and always to the full
-!!       depth of the halo). It is not clear if this functionality will ever
-!!       be supported by psyclone or if it should be treated as a special
-!!       case (as with computation of coordinate fields). Issue 2300 has been
-!!       opened to investigate this.
+!!       This routine loops only over halo cells and uses stencils, which is not
+!!       currently correctly supported by PSyclone (issue #2781 describes this)
 subroutine invoke_remap_on_extended_mesh_kernel_type(remap_field, field, stencil_depth, &
                                                      remap_weights, remap_indices, &
                                                      panel_id, &
@@ -323,123 +316,6 @@ subroutine invoke_remap_on_extended_mesh_kernel_type(remap_field, field, stencil
   !
   !$omp end parallel
 end subroutine invoke_remap_on_extended_mesh_kernel_type
-
-!------------------------------------------------------------------------------
-
-!> @brief Computes the Det(J) at W3 field on the extended mesh, which requires a
-!!        psykal_lite implementation because:
-!!        (a) it needs to run up to the full halo depth
-!!        (b) the field needs to be marked as clean afterwards
-SUBROUTINE invoke_extended_detj_at_w3_kernel_type(detj_at_w3_r_tran, chi_list, panel_id_list)
-  USE sci_calc_detj_at_w3_kernel_mod, ONLY: calc_detj_at_w3_code
-  USE function_space_mod, ONLY: BASIS, DIFF_BASIS
-  TYPE(r_tran_field_type), intent(in) :: detj_at_w3_r_tran
-  TYPE(field_type), intent(in) :: chi_list(3), panel_id_list
-  INTEGER(KIND=i_def) cell
-  INTEGER(KIND=i_def) loop0_start, loop0_stop
-  INTEGER(KIND=i_def) df_aspc1_chi_list, df_nodal
-  REAL(KIND=r_def), allocatable :: basis_aspc1_chi_list_on_w3(:,:,:), diff_basis_aspc1_chi_list_on_w3(:,:,:)
-  INTEGER(KIND=i_def) dim_aspc1_chi_list, diff_dim_aspc1_chi_list
-  REAL(KIND=r_def), pointer :: nodes_w3(:,:) => null()
-  INTEGER(KIND=i_def) nlayers
-  TYPE(field_proxy_type) chi_list_proxy(3), panel_id_list_proxy
-  TYPE(r_tran_field_proxy_type) detj_at_w3_r_tran_proxy
-  INTEGER(KIND=i_def), pointer :: map_adspc3_panel_id_list(:,:) => null(), map_aspc1_chi_list(:,:) => null(), &
-&map_w3(:,:) => null()
-  INTEGER(KIND=i_def) ndf_w3, undf_w3, ndf_aspc1_chi_list, undf_aspc1_chi_list, ndf_adspc3_panel_id_list, &
-&undf_adspc3_panel_id_list
-  INTEGER(KIND=i_def) max_halo_depth_mesh
-  TYPE(mesh_type), pointer :: mesh => null()
-  !
-  ! Initialise field and/or operator proxies
-  !
-  detj_at_w3_r_tran_proxy = detj_at_w3_r_tran%get_proxy()
-  chi_list_proxy(1) = chi_list(1)%get_proxy()
-  chi_list_proxy(2) = chi_list(2)%get_proxy()
-  chi_list_proxy(3) = chi_list(3)%get_proxy()
-  panel_id_list_proxy = panel_id_list%get_proxy()
-  !
-  ! Initialise number of layers
-  !
-  nlayers = detj_at_w3_r_tran_proxy%vspace%get_nlayers()
-  !
-  ! Create a mesh object
-  !
-  mesh => detj_at_w3_r_tran_proxy%vspace%get_mesh()
-  max_halo_depth_mesh = mesh%get_halo_depth()
-  !
-  ! Look-up dofmaps for each function space
-  !
-  map_w3 => detj_at_w3_r_tran_proxy%vspace%get_whole_dofmap()
-  map_aspc1_chi_list => chi_list_proxy(1)%vspace%get_whole_dofmap()
-  map_adspc3_panel_id_list => panel_id_list_proxy%vspace%get_whole_dofmap()
-  !
-  ! Initialise number of DoFs for w3
-  !
-  ndf_w3 = detj_at_w3_r_tran_proxy%vspace%get_ndf()
-  undf_w3 = detj_at_w3_r_tran_proxy%vspace%get_undf()
-  !
-  ! Initialise number of DoFs for aspc1_chi_list
-  !
-  ndf_aspc1_chi_list = chi_list_proxy(1)%vspace%get_ndf()
-  undf_aspc1_chi_list = chi_list_proxy(1)%vspace%get_undf()
-  !
-  ! Initialise number of DoFs for adspc3_panel_id_list
-  !
-  ndf_adspc3_panel_id_list = panel_id_list_proxy%vspace%get_ndf()
-  undf_adspc3_panel_id_list = panel_id_list_proxy%vspace%get_undf()
-  !
-  ! Initialise evaluator-related quantities for the target function spaces
-  !
-  nodes_w3 => detj_at_w3_r_tran_proxy%vspace%get_nodes()
-  !
-  ! Allocate basis/diff-basis arrays
-  !
-  dim_aspc1_chi_list = chi_list_proxy(1)%vspace%get_dim_space()
-  diff_dim_aspc1_chi_list = chi_list_proxy(1)%vspace%get_dim_space_diff()
-  ALLOCATE (basis_aspc1_chi_list_on_w3(dim_aspc1_chi_list, ndf_aspc1_chi_list, ndf_w3))
-  ALLOCATE (diff_basis_aspc1_chi_list_on_w3(diff_dim_aspc1_chi_list, ndf_aspc1_chi_list, ndf_w3))
-  !
-  ! Compute basis/diff-basis arrays
-  !
-  DO df_nodal=1,ndf_w3
-    DO df_aspc1_chi_list=1,ndf_aspc1_chi_list
-      basis_aspc1_chi_list_on_w3(:,df_aspc1_chi_list,df_nodal) = &
-&chi_list_proxy(1)%vspace%call_function(BASIS,df_aspc1_chi_list,nodes_w3(:,df_nodal))
-    END DO
-  END DO
-  DO df_nodal=1,ndf_w3
-    DO df_aspc1_chi_list=1,ndf_aspc1_chi_list
-      diff_basis_aspc1_chi_list_on_w3(:,df_aspc1_chi_list,df_nodal) = &
-&chi_list_proxy(1)%vspace%call_function(DIFF_BASIS,df_aspc1_chi_list,nodes_w3(:,df_nodal))
-    END DO
-  END DO
-  !
-  ! Set-up all of the loop bounds
-  !
-  loop0_start = 1
-  loop0_stop = mesh%get_last_halo_cell(mesh%get_halo_depth())
-  !
-  ! Call kernels and communication routines
-  !
-  DO cell=loop0_start,loop0_stop
-    !
-    CALL calc_detj_at_w3_code(nlayers, detj_at_w3_r_tran_proxy%data, chi_list_proxy(1)%data, chi_list_proxy(2)%data, &
-&chi_list_proxy(3)%data, panel_id_list_proxy%data, ndf_w3, undf_w3, map_w3(:,cell), ndf_aspc1_chi_list, undf_aspc1_chi_list, &
-&map_aspc1_chi_list(:,cell), basis_aspc1_chi_list_on_w3, diff_basis_aspc1_chi_list_on_w3, ndf_adspc3_panel_id_list, &
-&undf_adspc3_panel_id_list, map_adspc3_panel_id_list(:,cell))
-  END DO
-  !
-  ! Set halos dirty/clean for fields modified in the above loop
-  !
-  call detj_at_w3_r_tran_proxy%set_clean(mesh%get_halo_depth())
-  !
-  !
-  ! Deallocate basis arrays
-  !
-  DEALLOCATE (basis_aspc1_chi_list_on_w3, diff_basis_aspc1_chi_list_on_w3)
-  !
-END SUBROUTINE invoke_extended_detj_at_w3_kernel_type
 
 !> @brief Computes X_times_Y into the halo cells. Requires a psykal_lite
 !!        implementation because:
@@ -626,94 +502,5 @@ SUBROUTINE invoke_deep_shift_mass(mass_shifted, mass_prime)
   CALL mass_shifted_proxy%set_clean(clean_depth)
   !
 END SUBROUTINE invoke_deep_shift_mass
-
-!============================================================================= !
-! FFSL PANEL SWAP
-!============================================================================= !
-! A special routine to FFSL, which involves swapping the values of two fields in
-! their halos. This greatly simplifies the code as outer FFSL fluxes can be
-! computed with the same kernels as inner steps.
-! Requires a psykal_lite implementation because:
-! - it loops only through halo cells
-! - fields need to be marked as clean afterwards
-
-!> @brief Swap the halo values of two fields
-SUBROUTINE invoke_ffsl_panel_swap_kernel_type(field_x, field_y, panel_id, &
-                                              stencil_extent)
-  USE ffsl_panel_swap_kernel_mod, ONLY: ffsl_panel_swap_code
-  TYPE(r_tran_field_type), intent(in) :: field_x, field_y
-  TYPE(field_type), intent(in) :: panel_id
-  INTEGER(KIND=i_def), intent(in) :: stencil_extent
-  INTEGER(KIND=i_def) cell, depth
-  INTEGER(KIND=i_def) loop0_start, loop0_stop
-  INTEGER(KIND=i_def) nlayers
-  TYPE(field_proxy_type) panel_id_proxy
-  TYPE(r_tran_field_proxy_type) field_x_proxy, field_y_proxy
-  INTEGER(KIND=i_def), pointer :: map_adspc3_panel_id(:,:) => null(), map_w3(:,:) => null()
-  INTEGER(KIND=i_def) ndf_w3, undf_w3, ndf_adspc3_panel_id, undf_adspc3_panel_id
-  INTEGER(KIND=i_def) max_halo_depth_mesh
-  TYPE(mesh_type), pointer :: mesh => null()
-  !
-  ! Initialise field and/or operator proxies
-  !
-  field_x_proxy = field_x%get_proxy()
-  field_y_proxy = field_y%get_proxy()
-  panel_id_proxy = panel_id%get_proxy()
-  !
-  ! Initialise number of layers
-  !
-  nlayers = field_x_proxy%vspace%get_nlayers()
-  !
-  ! Create a mesh object
-  !
-  mesh => field_x_proxy%vspace%get_mesh()
-  max_halo_depth_mesh = mesh%get_halo_depth()
-  depth = MIN(max_halo_depth_mesh, stencil_extent)
-  !
-  ! Look-up dofmaps for each function space
-  !
-  map_w3 => field_x_proxy%vspace%get_whole_dofmap()
-  map_adspc3_panel_id => panel_id_proxy%vspace%get_whole_dofmap()
-  !
-  ! Initialise number of DoFs for w3
-  !
-  ndf_w3 = field_x_proxy%vspace%get_ndf()
-  undf_w3 = field_x_proxy%vspace%get_undf()
-  !
-  ! Initialise number of DoFs for adspc3_panel_id
-  !
-  ndf_adspc3_panel_id = panel_id_proxy%vspace%get_ndf()
-  undf_adspc3_panel_id = panel_id_proxy%vspace%get_undf()
-  !
-  ! Set-up all of the loop bounds
-  !
-  loop0_start = mesh%get_last_edge_cell() + 1
-  loop0_stop = mesh%get_last_halo_cell(depth)
-  !
-  ! Call kernels and communication routines
-  !
-  IF (field_x_proxy%is_dirty(depth=depth)) THEN
-    CALL field_x_proxy%halo_exchange(depth=depth)
-  END IF
-  IF (field_y_proxy%is_dirty(depth=depth)) THEN
-    CALL field_y_proxy%halo_exchange(depth=depth)
-  END IF
-  !
-  !
-  DO cell=loop0_start,loop0_stop
-    !
-    CALL ffsl_panel_swap_code(nlayers, field_x_proxy%data, field_y_proxy%data, panel_id_proxy%data, ndf_w3, undf_w3, &
-&map_w3(:,cell), ndf_adspc3_panel_id, undf_adspc3_panel_id, map_adspc3_panel_id(:,cell))
-  END DO
-  !
-  ! Set halos dirty/clean for fields modified in the above loop
-  !
-  CALL field_x_proxy%set_dirty()
-  CALL field_y_proxy%set_dirty()
-  CALL field_x_proxy%set_clean(depth)
-  CALL field_y_proxy%set_clean(depth)
-  !
-  !
-END SUBROUTINE invoke_ffsl_panel_swap_kernel_type
 
 end module psykal_lite_transport_mod

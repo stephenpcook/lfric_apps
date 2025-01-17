@@ -209,13 +209,14 @@ contains
 
     use sci_geometric_constants_mod,    only: get_detj_at_w3
     use transport_config_mod,           only: extended_mesh
-    use psykal_lite_transport_mod,      only: invoke_extended_detj_at_w3_kernel_type
+    use sci_calc_detj_at_w3_kernel_mod, only: calc_detj_at_w3_kernel_type
 
     implicit none
 
     integer(kind=i_def),       intent(in) :: mesh_id
     type(mesh_type),              pointer :: mesh
     logical(kind=l_def)                   :: constant_exists
+    integer(kind=i_def)                   :: halo_depth
     type(r_tran_field_type),      pointer :: detj_r_tran
     type(field_type),             pointer :: chi(:)
     type(field_type),             pointer :: panel_id
@@ -244,12 +245,13 @@ contains
       if ( subroutine_timers ) call timer('runtime_constants.transport')
 
       w3_fs => function_space_collection%get_fs(mesh, element_order, W3)
+      halo_depth = mesh%get_halo_depth()
       call detj_at_w3_r_tran_inventory%add_field(detj_r_tran, w3_fs, mesh,     &
-                                                 halo_depth=mesh%get_halo_depth())
+                                                 halo_depth=halo_depth)
 
       if (extended_mesh) then
-          call invoke_extended_detj_at_w3_kernel_type(detj_r_tran,             &
-                                                      chi, panel_id)
+      call invoke( calc_detj_at_w3_kernel_type(detj_r_tran, chi, panel_id,     &
+                                               halo_depth) )
       else
         call copy_field(detj_r_def, detj_r_tran)
       end if

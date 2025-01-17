@@ -29,6 +29,7 @@ module ffsl_unity_transport_alg_mod
   use constants_mod,                    only: r_tran, i_def, l_def
   use departure_points_config_mod,      only: horizontal_limit, &
                                               horizontal_limit_cap
+  use ffsl_panel_swap_kernel_mod,       only: ffsl_panel_swap_kernel_type
   use sci_field_minmax_alg_mod,         only: get_field_minmax
   use field_mod,                        only: field_type
   use fs_continuity_mod,                only: W3, W2H
@@ -45,7 +46,6 @@ module ffsl_unity_transport_alg_mod
   use io_config_mod,                    only: subroutine_timers
   use mesh_mod,                         only: mesh_type
   use mesh_collection_mod,              only: mesh_collection
-  use psykal_lite_transport_mod,        only: invoke_ffsl_panel_swap_kernel_type
   use r_tran_field_mod,                 only: r_tran_field_type
   use timer_mod,                        only: timer
   use transport_constants_mod,          only: get_detj_at_w3_r_tran
@@ -306,6 +306,7 @@ contains
     ! Half time step and flags for departure points
     integer(kind=i_def) :: mesh_id
     integer(kind=i_def) :: stencil_extent_xy
+    integer(kind=i_def) :: halo_depth
     integer(kind=i_def) :: max_stencil_extent
     logical(kind=l_def) :: cap_dep_points
     real(kind=r_tran)   :: dep_min, dep_max
@@ -335,8 +336,9 @@ contains
     if (topology == topology_fully_periodic .AND. geometry == geometry_spherical) then
       max_stencil_extent = MIN(adv_detj_x%get_field_halo_depth(), &
                                adv_detj_y%get_field_halo_depth())
-      call invoke_ffsl_panel_swap_kernel_type(adv_detj_x, adv_detj_y, &
-                                              panel_id, max_stencil_extent)
+      halo_depth = min(mesh%get_halo_depth(), max_stencil_extent)
+      call invoke( ffsl_panel_swap_kernel_type(adv_detj_x, adv_detj_y,         &
+                                               panel_id, halo_depth) )
     end if
 
     stencil_extent_xy = dep_stencil_extent

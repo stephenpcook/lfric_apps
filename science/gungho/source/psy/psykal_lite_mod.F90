@@ -605,7 +605,6 @@ contains
     !
   end subroutine invoke_elim_helmholtz_operator_kernel_type
 
-
 !-------------------------------------------------------------------------------
 !> Routine to perform higher-order reconstruction of a field on a fine mesh to
 !! a coarse mesh. There is a field in this kernel that requires both a mesh

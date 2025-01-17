@@ -15,10 +15,10 @@
 
 module ffsl_panel_swap_kernel_mod
 
-  use argument_mod,       only : arg_type,             &
-                                 GH_FIELD, GH_REAL,    &
-                                 CELL_COLUMN, GH_READ, &
-                                 GH_READWRITE,         &
+  use argument_mod,       only : arg_type,              &
+                                 GH_FIELD, GH_REAL,     &
+                                 HALO_CELL_COLUMN,      &
+                                 GH_READ, GH_READWRITE, &
                                  ANY_DISCONTINUOUS_SPACE_3
   use constants_mod,      only : r_tran, i_def, r_def
   use fs_continuity_mod,  only : W3
@@ -39,7 +39,7 @@ module ffsl_panel_swap_kernel_mod
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, W3),                        & ! field_y
          arg_type(GH_FIELD,  GH_REAL,    GH_READ,      ANY_DISCONTINUOUS_SPACE_3 ) & ! panel_id
          /)
-    integer :: operates_on = CELL_COLUMN
+    integer :: operates_on = HALO_CELL_COLUMN
   contains
     procedure, nopass :: ffsl_panel_swap_code
   end type
