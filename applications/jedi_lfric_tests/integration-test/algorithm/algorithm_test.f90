@@ -232,19 +232,16 @@ program algorithm_test
 
   call log_event( 'da dev alg functional testing completed ...', LOG_LEVEL_INFO )
 
-  ! Finalise halo functionality
-  call finalise_halo_comms()
+  ! (note that the order of the calls of the following finalisers matters)
 
-  ! Finalise MPI communications
+  call final_collections()
+  call final_configuration()
+
+  call finalise_halo_comms()
   call global_mpi%finalise()
   call configuration%clear()
   call destroy_comm()
 
-  call final_collections()
-
-  ! Finalise the logging system
   call finalise_logging()
-
-  call final_configuration()
 
 end program algorithm_test

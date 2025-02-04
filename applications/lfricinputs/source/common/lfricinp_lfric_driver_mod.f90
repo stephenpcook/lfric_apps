@@ -322,20 +322,21 @@ IMPLICIT NONE
 
 CALL log_event( 'Calling lfric finalise routines', LOG_LEVEL_INFO )
 
-! Finalise halos, XIOS, etc.
+
+! Finalise ...
+! (note that the order of the calls of the following finalisers matters)
+CALL final_collections()
+
 CALL finalise_halo_comms()
+
 CALL io_context%finalise_xios_context()
 CALL lfric_xios_finalise()
 
-CALL final_collections()
-
-! Finalise the logging system. This has to be done before finallising MPI
-! as logging is an MPI process.
-!
 CALL final_logger(program_name)
 
 CALL global_mpi%finalise()
 CALL destroy_comm()
+
 
 END SUBROUTINE lfricinp_finalise_lfric
 

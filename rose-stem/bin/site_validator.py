@@ -16,10 +16,7 @@ import subprocess
 WORKING_CONFIGS = {
     "meto": [
         "all",
-<<<<<<< rose-stem/bin/site_validator.py	(revision 7143)
-=======
         "build",
->>>>>>> rose-stem/bin/site_validator.py	(working copy)
         "gungho_model_baroclinic-C24_MG_spice_intel_fast-debug-64bit",
         "build_gungho_model_spice_intel_fast-debug-64bit",
     ],
