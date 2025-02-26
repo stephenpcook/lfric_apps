@@ -86,6 +86,10 @@ module transport_controller_mod
     procedure, public  :: before_transport_field
     procedure, public  :: after_transport_field
     procedure, public  :: get_cheap_update_step
+    procedure, public  :: get_num_substeps
+    procedure, public  :: get_ref_field
+    procedure, public  :: get_wind_npdt
+    procedure, public  :: get_transporting_wind
     procedure, public  :: get_transport_counter
     procedure, public  :: get_transport_metadata
     procedure, public  :: get_wind_precomputations
@@ -572,6 +576,76 @@ contains
     flux_precomputations => self%flux_precomputations
 
   end function get_flux_precomputations
+
+  !> @brief Returns a pointer to the rtran ref_field, which is used
+  !!        for the adjoint model.
+  !> @return The rtran ref_field
+  function get_ref_field(self) result(ref_field)
+
+    implicit none
+
+    class(transport_controller_type), target, intent(inout) :: self
+
+    type(r_tran_field_type), pointer :: ref_field
+
+    ref_field => self%ref_field_rtran
+
+  end function get_ref_field
+
+  !> @brief Returns a pointer to the transporting_wind field, which is used
+  !!        for the adjoint model.
+  !> @return The rtran ref_field
+  function get_transporting_wind(self) result(transporting_wind)
+
+    implicit none
+
+    class(transport_controller_type), target, intent(inout) :: self
+
+    type(r_tran_field_type), pointer :: transporting_wind
+
+    transporting_wind => self%transporting_wind
+
+  end function get_transporting_wind
+
+  !> @brief   Returns a pointer to the wind at time n plus delta_t
+  !> @details Used by the adjoint model
+  !> @param[in] mesh_id    The ID of the mesh to get the object for
+  !> @param[in] delta_t    Enumerator to select either wind_np1 or wind_n
+  !> @return The time n plus delta_t wind for that mesh
+  function get_wind_npdt(self, delta_t) result(wind_npdt)
+
+    implicit none
+
+    class(transport_controller_type), target, intent(inout) :: self
+
+    type(r_tran_field_type),                        pointer :: wind_npdt
+    integer(kind=i_def)                                     :: delta_t
+
+    select case(delta_t)
+      case(0_i_def)
+        wind_npdt => self%wind_n_rtran
+      case(1_i_def)
+        wind_npdt => self%wind_np1_rtran
+      case default
+        call log_event( "Bad value: delta_t enumerator must be either 0 or 1", LOG_LEVEL_ERROR )
+    end select
+
+  end function get_wind_npdt
+
+  !> @brief Returns the number of substeps, which is used
+  !!        for the adjoint model.
+  !> @return The number of substeps
+  function get_num_substeps(self) result(num_substeps)
+
+    implicit none
+
+    class(transport_controller_type), target, intent(inout) :: self
+
+    integer(kind=i_def) :: num_substeps
+
+    num_substeps = self%num_substeps
+
+  end function get_num_substeps
 
   !> @brief Initialises the flux precomputations object from a reference flux
   !> @param[in] ref_flux     The reference flux field

@@ -19,14 +19,14 @@ module adjt_end_transport_step_alg_mod
                                                   LOG_LEVEL_ERROR
   use mesh_mod,                            only : mesh_type
   use model_clock_mod,                     only : model_clock_type
-  use finite_element_config_mod,           only : element_order_h,             &
+  use finite_element_config_mod,           only : element_order_h, &
                                                   element_order_v
   use fs_continuity_mod,                   only : W2
   use function_space_collection_mod,       only : function_space_collection
   use setup_test_alg_mod,                  only : setup_test_tl_transport_controller
   use init_from_controller_alg_mod,        only : init_counter_fieldvals
-  use inner_from_controller_rtran_alg_mod, only : flux_counter_prod_rtran, &
-                                                  flux_counter_inp_prod_rtran
+  use inner_from_controller_rtran_alg_mod, only : counter_flux_prod_rtran, &
+                                                  counter_flux_inp_prod_rtran
   use transport_metadata_collection_mod,   only : transport_metadata_collection
   use transport_metadata_mod,              only : transport_metadata_type
   use tl_transport_controller_mod,         only : tl_transport_controller_type
@@ -138,7 +138,7 @@ module adjt_end_transport_step_alg_mod
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
     write(log_scratch_space, *) "flux_last_step inner product = ", real( flux_last_step_inner_prod, r_tran )
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
-    call flux_counter_prod_rtran( inner1, pert_wind_ls_rho_controller )
+    call counter_flux_prod_rtran( inner1, pert_wind_ls_rho_controller )
 
     ! Adjoint alg call and inner products
     sum_flux_sum_flux_input_inner_prod = 0.0_r_def
@@ -158,7 +158,7 @@ module adjt_end_transport_step_alg_mod
     inner2 = 0.0_r_tran
     inner2 = inner2 + real( sum_flux_sum_flux_input_inner_prod, r_tran )
     inner2 = inner2 + real( flux_last_flux_last_inp_inner_prod, r_tran )
-    call flux_counter_inp_prod_rtran( inner2, pert_wind_ls_rho_controller, counter_flux_inp )
+    call counter_flux_inp_prod_rtran( inner2, pert_wind_ls_rho_controller, counter_flux_inp )
 
     call tl_transport_controller % finalise()
 

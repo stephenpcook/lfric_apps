@@ -34,6 +34,8 @@ module init_from_controller_alg_mod
   public :: init_flux_pc_fieldvals
   public :: init_counter_fieldvals
   public :: init_wind_pc_fieldvals
+  public :: init_wind_pc_npdt_fieldvals
+  public :: init_ctrlr_fieldvals
 
   contains
 
@@ -52,7 +54,7 @@ module init_from_controller_alg_mod
     implicit none
 
     ! Arguments
-    type(mesh_type),                                       intent(in) :: mesh
+    type(mesh_type),                              pointer, intent(in) :: mesh
     integer(kind=i_def),                                   intent(in) :: num_steps
     type(r_tran_field_type), dimension(:), allocatable, intent(inout) :: flux_inp
     type(transport_controller_type),                    intent(inout) :: transport_controller
@@ -84,56 +86,84 @@ module init_from_controller_alg_mod
   !=============================================================================
   !> @brief Initialises fs and values of input fields used in adjoint tests
   !!        involving the flux precomputations object
-  !> @param[in]      mesh                  The model mesh
-  !> @param[in]      mesh_idx              The mesh index in flux precomputation that we need the fields of
-  !> @param[in,out]  flux_pc_ref_flux_inp  The ref_flux input fields to be set from the flux precomputations
-  !> @param[in,out]  transport_controller  The transport controller containing the desired flux precomputations object
-  subroutine init_flux_pc_fieldvals( mesh,                 &
-                                     mesh_idx,             &
-                                     flux_pc_ref_flux_inp, &
-                                     transport_controller  )
+  !> @param[in]      mesh                   The model mesh
+  !> @param[in]      mesh_idx               The mesh index in flux precomputation that we need the fields of
+  !> @param[in,out]  flux_pc_ref_flux_inp   The ref_flux input fields to be set from the flux precomputations
+  !> @param[in,out]  flux_pc_ref_field_inp  The ref_field input to be set from the flux precomputations
+  !> @param[in,out]  flux_pc_ref_mass_inp   The ref_mass input field to be set from the flux precomputations
+  !> @param[in,out]  transport_controller   The transport controller containing the desired flux precomputations object
+  subroutine init_flux_pc_fieldvals( mesh,                  &
+                                     mesh_idx,              &
+                                     flux_pc_ref_flux_inp,  &
+                                     flux_pc_ref_field_inp, &
+                                     flux_pc_ref_mass_inp,  &
+                                     transport_controller )
 
     implicit none
 
     ! Arguments
-    type(mesh_type),                                       intent(in) :: mesh
+    type(mesh_type),                              pointer, intent(in) :: mesh
     integer(kind=i_def),                                   intent(in) :: mesh_idx
     type(r_tran_field_type), dimension(:), allocatable, intent(inout) :: flux_pc_ref_flux_inp
+    type(r_tran_field_type), dimension(:), allocatable, intent(inout) :: flux_pc_ref_field_inp
+    type(r_tran_field_type), dimension(:), allocatable, intent(inout) :: flux_pc_ref_mass_inp
     type(transport_controller_type),                    intent(inout) :: transport_controller
-
 
     ! Internal variables
     integer(kind=i_def)                                               :: num_steps
-    integer(kind=i_def)                                               :: step
-    type(flux_precomputations_type),                          pointer :: flux_pc
     integer(kind=i_def)                                               :: mesh_id_from_idx
-    type(r_tran_field_type),                                  pointer :: ref_flux_ptr
+    integer(kind=i_def)                                               :: step
+    integer(kind=i_def)                                               :: halo_depth
+    type(flux_precomputations_type),                          pointer :: flux_pc
+    type(r_tran_field_type),                                  pointer :: ref_field_ptr
+    type(r_tran_field_type),                                  pointer :: ref_mass_ptr
+    type(function_space_type),                                pointer :: w3_fs
 
 
     flux_pc => transport_controller % get_flux_precomputations()
+    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
     num_steps = flux_pc % get_num_steps()
+
+    ! Initialising and setting ref_flux input
     call init_flux_fields( mesh,                 &
                            num_steps,            &
                            flux_pc_ref_flux_inp, &
                            transport_controller  )
 
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
     do step = 1, num_steps
-      ! We skip the initialisation error checking because we
-      ! have explicit behaviour for the input generation based on
-      ! whether or not it is initialised.
-      ref_flux_ptr => flux_pc % get_ref_flux( mesh_id_from_idx, &
-                                              step,             &
-                                              skip_check_init = .true._l_def )
 
-      ! If the field has been initialised we set it to that value,
-      ! else we set to zero. This is safe to do because we have ensured
-      ! the two sets of fields are on the same function space via
-      ! init_flux_fields.
-      if ( ref_flux_ptr % is_initialised() ) then
-        call invoke( setval_X( flux_pc_ref_flux_inp(step), ref_flux_ptr ) )
+      ! Initialise step must be called to prevent breakages
+      ! when getting the ref_field and ref_mass.
+      call invoke( setval_c( flux_pc_ref_flux_inp(step), 0.0_r_tran ) )
+      call flux_pc % initialise_step( step, flux_pc_ref_flux_inp(step) )
+
+    end do
+
+    allocate( flux_pc_ref_field_inp(num_steps + 1) )
+    allocate( flux_pc_ref_mass_inp(num_steps + 1) )
+    halo_depth = mesh % get_halo_depth()
+    w3_fs => function_space_collection % get_fs( mesh, 0, 0, W3 )
+
+    do step = 1, num_steps + 1
+
+      call flux_pc_ref_field_inp(step) % initialise( w3_fs, halo_depth = halo_depth )
+      call flux_pc_ref_mass_inp(step) % initialise( w3_fs, halo_depth = halo_depth )
+
+      ref_mass_ptr => flux_pc % get_ref_mass( mesh_id_from_idx, &
+                                              step )
+      ref_field_ptr => flux_pc % get_ref_field( mesh_id_from_idx, &
+                                                step )
+
+      if ( ref_field_ptr % is_initialised() ) then
+        call invoke( setval_X( flux_pc_ref_field_inp(step), ref_field_ptr ) )
       else
-        call invoke( setval_c( flux_pc_ref_flux_inp(step), 0.0_r_tran ) )
+        call invoke( setval_c( flux_pc_ref_field_inp(step), 0.0_r_tran ) )
+      end if
+
+      if ( ref_mass_ptr % is_initialised() ) then
+        call invoke( setval_X( flux_pc_ref_mass_inp(step), ref_mass_ptr ) )
+      else
+        call invoke( setval_c( flux_pc_ref_mass_inp(step), 0.0_r_tran ) )
       end if
 
     end do
@@ -155,7 +185,7 @@ module init_from_controller_alg_mod
     implicit none
 
     ! Arguments
-    type(mesh_type),                                       intent(in) :: mesh
+    type(mesh_type),                              pointer, intent(in) :: mesh
     type(field_type),                                   intent(inout) :: counter_field_n_inp
     type(r_tran_field_type), dimension(:), allocatable, intent(inout) :: counter_flux_inp
     type(transport_controller_type),                    intent(inout) :: transport_controller
@@ -214,15 +244,15 @@ module init_from_controller_alg_mod
     implicit none
 
     ! Arguments
-    type(mesh_type),                                       intent(in) :: mesh
-    type(field_type),                                   intent(inout) :: wind_pc_inp
-    integer(kind=i_def),                                   intent(in) :: direction
-    type(transport_controller_type),                    intent(inout) :: transport_controller
+    type(mesh_type),           pointer, intent(in) :: mesh
+    type(field_type),                intent(inout) :: wind_pc_inp
+    integer(kind=i_def),                intent(in) :: direction
+    type(transport_controller_type), intent(inout) :: transport_controller
 
     ! Internal variables
-    integer(kind=i_def)                                               :: mesh_id
-    type(wind_precomputations_type),                          pointer :: wind_pc
-    type(r_tran_field_type),                                  pointer :: wind_ptr
+    integer(kind=i_def)                            :: mesh_id
+    type(wind_precomputations_type),       pointer :: wind_pc
+    type(r_tran_field_type),               pointer :: wind_ptr
 
 
     ! Setting wind values
@@ -233,5 +263,90 @@ module init_from_controller_alg_mod
     call invoke( setval_X( wind_pc_inp, wind_ptr ) )
 
   end subroutine init_wind_pc_fieldvals
+
+  !=============================================================================
+  !> @brief Initialises fs and sets values of fields used in adjoint tests
+  !!        involving the wind precomputations object
+  !> @param[in]      mesh                  The model mesh
+  !> @param[in,out]  wind_pc_npdt_inp      The wind field at time n plus dt to be initialised and set
+  !!                                       from the wind precomputations object
+  !> @param[in]      direction             Direction of the advecting wind
+  !> @param[in,out]  transport_controller  The transport controller containing the desired wind precomputations object
+  subroutine init_wind_pc_npdt_fieldvals( mesh,                &
+                                          wind_pc_npdt_inp,    &
+                                          delta_t,             &
+                                          transport_controller )
+
+    implicit none
+
+    ! Arguments
+    type(mesh_type),           pointer, intent(in) :: mesh
+    type(field_type),                intent(inout) :: wind_pc_npdt_inp
+    integer(kind=i_def),                intent(in) :: delta_t
+    type(transport_controller_type), intent(inout) :: transport_controller
+
+    ! Internal variables
+    integer(kind=i_def)                            :: mesh_id
+    type(wind_precomputations_type),       pointer :: wind_pc
+    type(r_tran_field_type),               pointer :: wind_ptr
+
+
+    ! Setting wind values
+    mesh_id = mesh % get_id()
+    wind_pc => transport_controller % get_wind_precomputations()
+    wind_ptr => wind_pc % get_wind_npdt( mesh_id, delta_t )
+    call wind_ptr % copy_field_properties( wind_pc_npdt_inp )
+    call invoke( setval_X( wind_pc_npdt_inp, wind_ptr ) )
+
+  end subroutine init_wind_pc_npdt_fieldvals
+
+  !=============================================================================
+  !> @brief Initialises fs of fields used in adjoint tests
+  !!        involving the transport controller object
+  !> @param[in,out]  ctrlr_ref_field_inp           The ref_field to be initialised and set from the transport controller
+  !> @param[in,out]  ctrlr_wind_n_inp              The wind_n field to be initialised and set from the transport controller
+  !> @param[in,out]  ctrlr_wind_np1_inp            The wind_np1 field to be initialised and set from the transport controller
+  !> @param[in,out]  ctrlr_transporting_wind_inp   The transporting_wind field to be initialised and set
+  !!                                               from the transport controller
+  !> @param[in,out]  transport_controller          The transport controller object
+  subroutine init_ctrlr_fieldvals( ctrlr_ref_field_inp,         &
+                                   ctrlr_wind_n_inp,            &
+                                   ctrlr_wind_np1_inp,          &
+                                   ctrlr_transporting_wind_inp, &
+                                   transport_controller )
+
+    implicit none
+
+    ! Arguments
+    type(field_type),                intent(inout) :: ctrlr_ref_field_inp
+    type(field_type),                intent(inout) :: ctrlr_wind_n_inp
+    type(field_type),                intent(inout) :: ctrlr_wind_np1_inp
+    type(field_type),                intent(inout) :: ctrlr_transporting_wind_inp
+    type(transport_controller_type), intent(inout) :: transport_controller
+
+    ! Internal variables
+    type(r_tran_field_type),               pointer :: ref_field
+    type(r_tran_field_type),               pointer :: wind_n
+    type(r_tran_field_type),               pointer :: wind_np1
+    type(r_tran_field_type),               pointer :: transporting_wind
+
+
+    ref_field => transport_controller % get_ref_field()
+    call ref_field % copy_field_properties( ctrlr_ref_field_inp )
+    call invoke( setval_X( ctrlr_ref_field_inp, ref_field ) )
+
+    wind_n => transport_controller % get_wind_npdt(0_i_def)
+    call wind_n % copy_field_properties( ctrlr_wind_n_inp )
+    call invoke( setval_X( ctrlr_wind_n_inp, wind_n ) )
+
+    wind_np1 => transport_controller % get_wind_npdt(1_i_def)
+    call wind_np1 % copy_field_properties( ctrlr_wind_np1_inp )
+    call invoke( setval_X( ctrlr_wind_np1_inp, wind_np1 ) )
+
+    transporting_wind => transport_controller % get_transporting_wind()
+    call transporting_wind % copy_field_properties( ctrlr_transporting_wind_inp )
+    call invoke( setval_X( ctrlr_transporting_wind_inp, transporting_wind ) )
+
+  end subroutine init_ctrlr_fieldvals
 
 end module init_from_controller_alg_mod

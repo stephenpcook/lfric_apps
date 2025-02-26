@@ -114,7 +114,9 @@ module wind_precomputations_alg_mod
     procedure, public  :: get_local_mesh_id
     procedure, public  :: get_prime_extrusion_mesh_id
     procedure, public  :: is_initialised
+    procedure, public  :: get_mesh_id_from_idx
     procedure, public  :: get_wind
+    procedure, public  :: get_wind_npdt
     procedure, public  :: get_number_mol_substeps
     procedure, public  :: get_dt_mol_substep
     procedure, public  :: get_vert_sl_coeff
@@ -397,6 +399,22 @@ contains
 ! GETTERS FOR INFORMATION ABOUT THIS OBJECT
 ! ============================================================================ !
 
+  !> @brief   Public function for getting mesh_id corresponding to array index
+  !> @details Used by the adjoint model
+  !> @param[in] idx       Array index for the desired mesh
+  !> @return The ID of the corresponding mesh
+  function get_mesh_id_from_idx(self, idx) result(mesh_id)
+
+    implicit none
+
+    class(wind_precomputations_type), target, intent(in) :: self
+    integer(kind=i_def),                      intent(in) :: idx
+    integer(kind=i_def)                                  :: mesh_id
+
+    mesh_id = self%mesh_ids(idx)
+
+  end function get_mesh_id_from_idx
+
   !> @brief Returns the local mesh id for the object
   !> @return The identifier for the underlying local mesh
   function get_local_mesh_id(self) result(local_mesh_id)
@@ -474,6 +492,34 @@ contains
     call check_initialised_field(transporting_wind, field_name, mesh_id)
 
   end function get_wind
+
+  !> @brief   Returns a pointer to the wind at time n plus delta_t
+  !> @details Used by the adjoint model
+  !> @param[in] mesh_id    The ID of the mesh to get the object for
+  !> @param[in] delta_t    Enumerator to select either wind_np1 or wind_n
+  !> @return The time n plus delta_t wind for that mesh
+  function get_wind_npdt(self, mesh_id, delta_t) result(wind_npdt)
+
+    implicit none
+
+    class(wind_precomputations_type), target, intent(in) :: self
+    integer(kind=i_def),                      intent(in) :: mesh_id
+    type(r_tran_field_type),                  pointer    :: wind_npdt
+    integer(kind=i_def)                                  :: delta_t
+    integer(kind=i_def)                                  :: idx
+
+    idx = self%idx_from_mesh_id(mesh_id)
+
+    select case(delta_t)
+      case(0_i_def)
+        wind_npdt => self%wind_n(idx)
+      case(1_i_def)
+        wind_npdt => self%wind_np1(idx)
+      case default
+        call log_event( "Bad value: delta_t enumerator must be either 0 or 1", LOG_LEVEL_ERROR )
+    end select
+
+  end function get_wind_npdt
 
 ! ============================================================================ !
 ! GETTERS FOR MOL PRE-COMPUTATIONS

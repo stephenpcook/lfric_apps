@@ -24,7 +24,7 @@ module adj_interpolation_alg_mod
   use operator_mod,                              only: operator_type
   use sci_nodal_xyz_coordinates_kernel_mod,      only: nodal_xyz_coordinates_kernel_type
   use sci_compute_sample_u_ops_kernel_mod,       only: compute_sample_u_ops_kernel_type
-  use invoke_adj_convert_cart2sphere_vector_mod, only: invoke_adj_convert_cart2sphere_vector
+  use adj_sci_psykal_builtin_light_mod,          only: invoke_adj_convert_cart2sphere_vector
 
   implicit none
 

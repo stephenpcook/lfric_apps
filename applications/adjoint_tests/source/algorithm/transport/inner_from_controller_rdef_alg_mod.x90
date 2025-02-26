@@ -23,27 +23,46 @@ module inner_from_controller_rdef_alg_mod
 
   private
 
-  public :: flux_pc_prod_rdef
-  public :: flux_pc_inp_prod_rdef
-  public :: flux_counter_prod_rdef
-  public :: flux_counter_inp_prod_rdef
-  public :: field_n_counter_prod_rdef
-  public :: field_n_counter_inp_prod_rdef
-  public :: wind_pc_prod_rdef
-  public :: wind_pc_inp_prod_rdef
+  ! Flux precomputations
+  public :: flux_pc_ref_flux_prod_rdef
+  public :: flux_pc_ref_flux_inp_prod_rdef
+  public :: flux_pc_ref_field_prod_rdef
+  public :: flux_pc_ref_field_inp_prod_rdef
+  public :: flux_pc_ref_mass_prod_rdef
+  public :: flux_pc_ref_mass_inp_prod_rdef
+
+  ! Transport counter
+  public :: counter_flux_prod_rdef
+  public :: counter_flux_inp_prod_rdef
+  public :: counter_field_n_prod_rdef
+  public :: counter_field_n_inp_prod_rdef
+
+  ! Wind precomputations
+  public :: wind_pc_npdt_prod_rdef
+  public :: wind_pc_npdt_inp_prod_rdef
+  public :: wind_pc_dir_prod_rdef
+  public :: wind_pc_dir_inp_prod_rdef
+
+  ! Transport controller
+  public :: ctrlr_ref_field_prod_rdef
+  public :: ctrlr_ref_field_inp_prod_rdef
+  public :: ctrlr_wind_npdt_prod_rdef
+  public :: ctrlr_wind_npdt_inp_prod_rdef
+  public :: ctrlr_transporting_wind_prod_rdef
+  public :: ctrlr_transporting_wind_inp_prod_rdef
 
   contains
 
   !=============================================================================
-  !> @brief Increments the rdef inner product by flux_pc_fields.flux_pc_fields
+  !> @brief Increments the rdef inner product by ref_flux.ref_flux
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the flux precomputations
   !> @param[in]      mesh_idx              The mesh index of the desired fields
   !> @param[in]      flux_sf               (Optional) scale factor for the increment
-  subroutine flux_pc_prod_rdef( inner,                &
-                                transport_controller, &
-                                mesh_idx,             &
-                                flux_sf )
+  subroutine flux_pc_ref_flux_prod_rdef( inner,                &
+                                         transport_controller, &
+                                         mesh_idx,             &
+                                         flux_sf )
     implicit none
 
     ! Arguments
@@ -64,13 +83,9 @@ module inner_from_controller_rdef_alg_mod
     mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
     num_steps = flux_pc % get_num_steps()
     do step = 1, num_steps
-      ! We skip the initialisation error checking because we
-      ! have explicit behaviour for the input generation based on
-      ! whether or not it is initialised.
-      ref_flux_ptr => flux_pc % get_ref_flux( mesh_id_from_idx, &
-                                              step,             &
-                                              skip_check_init = .true._l_def )
 
+      ref_flux_ptr => flux_pc % get_ref_flux( mesh_id_from_idx, &
+                                              step  )
       flux_inner_prod = 0.0_r_def
       if ( ref_flux_ptr % is_initialised() ) then
         call invoke( x_innerproduct_x( flux_inner_prod, ref_flux_ptr ) )
@@ -90,25 +105,25 @@ module inner_from_controller_rdef_alg_mod
 
     end do
 
-  end subroutine flux_pc_prod_rdef
+  end subroutine flux_pc_ref_flux_prod_rdef
 
   !=============================================================================
-  !> @brief Increments the rdef inner product by flux_pc_fields.flux_pc_fields_inp
+  !> @brief Increments the rdef inner product by ref_flux.ref_flux_inp
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the flux precomputations
   !> @param[in]      mesh_idx              The mesh index of the desired fields
-  !> @param[in]      flux_pc_inp           Flux precomputations input fields at start of adjoint test
-  subroutine flux_pc_inp_prod_rdef( inner,                &
-                                    transport_controller, &
-                                    mesh_idx,             &
-                                    flux_pc_inp )
+  !> @param[in]      flux_pc_ref_flux_inp  Flux precomputations input fields at start of adjoint test
+  subroutine flux_pc_ref_flux_inp_prod_rdef( inner,                &
+                                             transport_controller, &
+                                             mesh_idx,             &
+                                             flux_pc_ref_flux_inp )
     implicit none
 
     ! Arguments
     real(kind=r_def),                   intent(inout) :: inner
     type(transport_controller_type),    intent(inout) :: transport_controller
     integer(kind=i_def),                   intent(in) :: mesh_idx
-    type(r_tran_field_type), dimension(:), intent(in) :: flux_pc_inp
+    type(r_tran_field_type), dimension(:), intent(in) :: flux_pc_ref_flux_inp
 
     ! Internal variables
     type(flux_precomputations_type),          pointer :: flux_pc
@@ -122,31 +137,225 @@ module inner_from_controller_rdef_alg_mod
     mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
     num_steps = flux_pc % get_num_steps()
     do step = 1, num_steps
-      ! We skip the initialisation error checking because we
-      ! have explicit behaviour for the input generation based on
-      ! whether or not it is initialised.
-      ref_flux_ptr => flux_pc % get_ref_flux( mesh_id_from_idx, &
-                                              step,             &
-                                              skip_check_init = .true._l_def )
 
+      ref_flux_ptr => flux_pc % get_ref_flux( mesh_id_from_idx, &
+                                              step )
       flux_inner_prod = 0.0_r_def
       if ( ref_flux_ptr % is_initialised() ) then
         call invoke( x_innerproduct_y( flux_inner_prod, &
                                        ref_flux_ptr,    &
-                                       flux_pc_inp(step) ) )
+                                       flux_pc_ref_flux_inp(step) ) )
         inner = inner + flux_inner_prod
       end if
 
     end do
 
-  end subroutine flux_pc_inp_prod_rdef
+  end subroutine flux_pc_ref_flux_inp_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by ref_field.ref_field
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the flux precomputations
+  !> @param[in]      mesh_idx              The mesh index of the desired fields
+  !> @param[in]      field_sf              (Optional) scale factor for the increment
+  subroutine flux_pc_ref_field_prod_rdef( inner,                &
+                                          transport_controller, &
+                                          mesh_idx,             &
+                                          field_sf )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    integer(kind=i_def),                intent(in) :: mesh_idx
+    real(kind=r_def),         optional, intent(in) :: field_sf
+
+    ! Internal variables
+    type(flux_precomputations_type),       pointer :: flux_pc
+    type(r_tran_field_type),               pointer :: ref_field_ptr
+    integer(kind=i_def)                            :: step
+    integer(kind=i_def)                            :: num_steps
+    integer(kind=i_def)                            :: mesh_id_from_idx
+    real(kind=r_def)                               :: field_inner_prod
+
+    flux_pc => transport_controller % get_flux_precomputations()
+    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc % get_num_steps()
+    do step = 1, num_steps + 1
+
+      ref_field_ptr => flux_pc % get_ref_field( mesh_id_from_idx, &
+                                                step )
+
+      field_inner_prod = 0.0_r_def
+      if ( ref_field_ptr % is_initialised() ) then
+        call invoke( x_innerproduct_x( field_inner_prod, ref_field_ptr ) )
+
+        if( present(field_sf) ) then
+          inner = inner + field_inner_prod*field_sf
+          call invoke( inc_a_times_X(field_sf, ref_field_ptr) )
+          write(log_scratch_space, *) "Flux precomputations ref_field(step = ", step, ") inner prod = ", &
+                                      field_inner_prod*field_sf
+        else
+          inner = inner + field_inner_prod
+          write(log_scratch_space, *) "Flux precomputations ref_field(step = ", step, ") inner prod = ", &
+                                      field_inner_prod
+        end if
+        call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
+      end if
+    end do
+
+  end subroutine flux_pc_ref_field_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by ref_field.ref_field_inp
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the flux precomputations
+  !> @param[in]      mesh_idx              The mesh index of the desired fields
+  !> @param[in]      flux_pc_inp           Flux precomputations input fields at start of adjoint test
+  subroutine flux_pc_ref_field_inp_prod_rdef( inner,                &
+                                              transport_controller, &
+                                              mesh_idx,             &
+                                              flux_pc_ref_field_inp )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                   intent(inout) :: inner
+    type(transport_controller_type),    intent(inout) :: transport_controller
+    integer(kind=i_def),                   intent(in) :: mesh_idx
+    type(r_tran_field_type), dimension(:), intent(in) :: flux_pc_ref_field_inp
+
+    ! Internal variables
+    type(flux_precomputations_type),          pointer :: flux_pc
+    type(r_tran_field_type),                  pointer :: ref_field_ptr
+    integer(kind=i_def)                               :: step
+    integer(kind=i_def)                               :: num_steps
+    integer(kind=i_def)                               :: mesh_id_from_idx
+    real(kind=r_def)                                  :: field_inner_prod
+
+    flux_pc => transport_controller % get_flux_precomputations()
+    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc % get_num_steps()
+    do step = 1, num_steps + 1
+
+      ref_field_ptr => flux_pc % get_ref_field( mesh_id_from_idx, &
+                                                step )
+
+      field_inner_prod = 0.0_r_def
+      if ( ref_field_ptr % is_initialised() ) then
+        call invoke( x_innerproduct_y( field_inner_prod, &
+                                       ref_field_ptr,    &
+                                       flux_pc_ref_field_inp(step) ) )
+        inner = inner + field_inner_prod
+      end if
+    end do
+
+  end subroutine flux_pc_ref_field_inp_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by ref_mass.ref_mass
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the flux precomputations
+  !> @param[in]      mesh_idx              The mesh index of the desired fields
+  !> @param[in]      field_sf              (Optional) scale factor for the increment
+  subroutine flux_pc_ref_mass_prod_rdef( inner,                &
+                                         transport_controller, &
+                                         mesh_idx,             &
+                                         mass_sf )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    integer(kind=i_def),                intent(in) :: mesh_idx
+    real(kind=r_def),         optional, intent(in) :: mass_sf
+
+    ! Internal variables
+    type(flux_precomputations_type),       pointer :: flux_pc
+    type(r_tran_field_type),               pointer :: ref_mass_ptr
+    integer(kind=i_def)                            :: step
+    integer(kind=i_def)                            :: num_steps
+    integer(kind=i_def)                            :: mesh_id_from_idx
+    real(kind=r_def)                               :: mass_inner_prod
+
+    flux_pc => transport_controller % get_flux_precomputations()
+    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc % get_num_steps()
+    do step = 1, num_steps + 1
+
+      ref_mass_ptr => flux_pc % get_ref_mass( mesh_id_from_idx, &
+                                              step )
+
+      mass_inner_prod = 0.0_r_def
+      if ( ref_mass_ptr % is_initialised() ) then
+        call invoke( x_innerproduct_x( mass_inner_prod, ref_mass_ptr ) )
+
+        if( present(mass_sf) ) then
+          inner = inner + mass_inner_prod*mass_sf
+          call invoke( inc_a_times_X(mass_sf, ref_mass_ptr) )
+          write(log_scratch_space, *) "Flux precomputations ref_mass(step = ", step, ") inner prod = ", &
+                                      mass_inner_prod*mass_sf
+        else
+          inner = inner + mass_inner_prod
+          write(log_scratch_space, *) "Flux precomputations ref_mass(step = ", step, ") inner prod = ", &
+                                      mass_inner_prod
+        end if
+        call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
+      end if
+    end do
+
+  end subroutine flux_pc_ref_mass_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by ref_mass.ref_mass_inp
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the flux precomputations
+  !> @param[in]      mesh_idx              The mesh index of the desired fields
+  !> @param[in]      flux_pc_inp           Flux precomputations input fields at start of adjoint test
+  subroutine flux_pc_ref_mass_inp_prod_rdef( inner,                &
+                                             transport_controller, &
+                                             mesh_idx,             &
+                                             flux_pc_ref_mass_inp )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                   intent(inout) :: inner
+    type(transport_controller_type),    intent(inout) :: transport_controller
+    integer(kind=i_def),                   intent(in) :: mesh_idx
+    type(r_tran_field_type), dimension(:), intent(in) :: flux_pc_ref_mass_inp
+
+    ! Internal variables
+    type(flux_precomputations_type),          pointer :: flux_pc
+    type(r_tran_field_type),                  pointer :: ref_mass_ptr
+    integer(kind=i_def)                               :: step
+    integer(kind=i_def)                               :: num_steps
+    integer(kind=i_def)                               :: mesh_id_from_idx
+    real(kind=r_def)                                  :: mass_inner_prod
+
+    flux_pc => transport_controller % get_flux_precomputations()
+    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc % get_num_steps()
+    do step = 1, num_steps + 1
+
+      ref_mass_ptr => flux_pc % get_ref_mass( mesh_id_from_idx, &
+                                              step )
+
+      mass_inner_prod = 0.0_r_def
+      if ( ref_mass_ptr % is_initialised() ) then
+        call invoke( x_innerproduct_y( mass_inner_prod, &
+                                       ref_mass_ptr,    &
+                                       flux_pc_ref_mass_inp(step) ) )
+        inner = inner + mass_inner_prod
+      end if
+    end do
+
+  end subroutine flux_pc_ref_mass_inp_prod_rdef
 
   !=============================================================================
   !> @brief Increments the rdef inner product by transport_counter_flux_fields.transport_counter_flux_fields
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the transport counter
   !> @param[in]      flux_sf               (Optional) scale factor for the increment
-  subroutine flux_counter_prod_rdef( inner,                &
+  subroutine counter_flux_prod_rdef( inner,                &
                                      transport_controller, &
                                      flux_sf )
     implicit none
@@ -187,22 +396,22 @@ module inner_from_controller_rdef_alg_mod
 
     end do
 
-  end subroutine flux_counter_prod_rdef
+  end subroutine counter_flux_prod_rdef
 
   !=============================================================================
   !> @brief Increments the rdef inner product by transport_counter_flux_fields.transport_counter_flux_fields_inp
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the transport counter
-  !> @param[in]      flux_counter_inp      Transport counter input fields at start of adjoint test
-  subroutine flux_counter_inp_prod_rdef( inner,                &
+  !> @param[in]      counter_flux_inp      Transport counter input fields at start of adjoint test
+  subroutine counter_flux_inp_prod_rdef( inner,                &
                                          transport_controller, &
-                                         flux_counter_inp )
+                                         counter_flux_inp )
     implicit none
 
     ! Arguments
     real(kind=r_def),                   intent(inout) :: inner
     type(transport_controller_type),    intent(inout) :: transport_controller
-    type(r_tran_field_type), dimension(:), intent(in) :: flux_counter_inp
+    type(r_tran_field_type), dimension(:), intent(in) :: counter_flux_inp
 
     ! Internal variables
     type(transport_counter_type),             pointer :: transport_counter
@@ -220,20 +429,20 @@ module inner_from_controller_rdef_alg_mod
       if ( flux_ptr % is_initialised() ) then
         call invoke( x_innerproduct_y( flux_inner_prod, &
                                        flux_ptr,        &
-                                       flux_counter_inp(step) ) )
+                                       counter_flux_inp(step) ) )
         inner = inner + flux_inner_prod
       end if
 
     end do
 
-  end subroutine flux_counter_inp_prod_rdef
+  end subroutine counter_flux_inp_prod_rdef
 
   !=============================================================================
   !> @brief Increments the rdef inner product by transport_counter_field_n.transport_counter_field_n
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the transport counter
   !> @param[in]      field_n_sf            (Optional) scale factor for the increment
-  subroutine field_n_counter_prod_rdef( inner,                &
+  subroutine counter_field_n_prod_rdef( inner,                &
                                         transport_controller, &
                                         field_n_sf )
     implicit none
@@ -268,22 +477,22 @@ module inner_from_controller_rdef_alg_mod
       call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
     end if
 
-  end subroutine field_n_counter_prod_rdef
+  end subroutine counter_field_n_prod_rdef
 
   !=============================================================================
   !> @brief Increments the rdef inner product by transport_counter_field_n.transport_counter_field_n_inp
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the transport counter
   !> @param[in]      field_n_counter_inp   Transport counter input fields at start of adjoint test
-  subroutine field_n_counter_inp_prod_rdef( inner,                &
+  subroutine counter_field_n_inp_prod_rdef( inner,                &
                                             transport_controller, &
-                                            field_n_counter_inp )
+                                            counter_field_n_inp )
     implicit none
 
     ! Arguments
     real(kind=r_def),                intent(inout) :: inner
     type(transport_controller_type), intent(inout) :: transport_controller
-    type(r_tran_field_type),            intent(in) :: field_n_counter_inp
+    type(r_tran_field_type),            intent(in) :: counter_field_n_inp
 
     ! Internal variables
     type(transport_counter_type),          pointer :: transport_counter
@@ -297,24 +506,111 @@ module inner_from_controller_rdef_alg_mod
       field_n_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_y( field_n_inner_prod, &
                                      field_n_ptr,        &
-                                     field_n_counter_inp ) )
+                                     counter_field_n_inp ) )
       inner = inner + field_n_inner_prod
     end if
 
-  end subroutine field_n_counter_inp_prod_rdef
+  end subroutine counter_field_n_inp_prod_rdef
 
   !=============================================================================
-  !> @brief Increments the rdef inner product by wind_pc.wind_pc
+  !> @brief Increments the rdef inner product by wind_npdt.wind_npdt
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the wind precomputations
+  !> @param[in]      mesh_id               Mesh id of the wind field
+  !> @param[in]      delta_t               Enumerator selecting wind_np1 or wind_n
+  !> @param[in]      wind_sf               (Optional) scale factor for the increment
+  subroutine wind_pc_npdt_prod_rdef( inner,                &
+                                     transport_controller, &
+                                     mesh_id,              &
+                                     delta_t,              &
+                                     wind_sf )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    integer(kind=i_def),                intent(in) :: mesh_id
+    integer(kind=i_def),                intent(in) :: delta_t
+    real(kind=r_def),         optional, intent(in) :: wind_sf
+
+    ! Internal variables
+    type(wind_precomputations_type),       pointer :: wind_pc
+    type(r_tran_field_type),               pointer :: wind_ptr
+    real(kind=r_def)                               :: wind_inner_prod
+
+    wind_pc => transport_controller % get_wind_precomputations()
+    wind_ptr => wind_pc % get_wind_npdt( mesh_id, delta_t )
+
+    if ( wind_ptr % is_initialised() ) then
+      wind_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_x( wind_inner_prod, wind_ptr ) )
+
+      if( present(wind_sf) ) then
+        inner = inner + wind_inner_prod*wind_sf
+        call invoke( inc_a_times_X(wind_sf, wind_ptr) )
+        write(log_scratch_space, *) "Wind precomputations(delta_t = ", delta_t, ") inner prod = ", &
+                                    wind_inner_prod*wind_sf
+      else
+        inner = inner + wind_inner_prod
+        write(log_scratch_space, *) "Wind precomputations(delta_t = ", delta_t, ") inner prod = ", &
+                                    wind_inner_prod
+      end if
+      call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
+    end if
+
+  end subroutine wind_pc_npdt_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by wind_pc.wind_pc_inp
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the wind precomputations
+  !> @param[in]      mesh_id               Mesh id of the wind field
+  !> @param[in]      delta_t               Enumerator selecting wind_np1 or wind_n
+  !> @param[in]      wind_pc_inp           Wind precomputation input fields at start of adjoint test
+  subroutine wind_pc_npdt_inp_prod_rdef( inner,                &
+                                         transport_controller, &
+                                         mesh_id,              &
+                                         delta_t,              &
+                                         wind_pc_inp )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    integer(kind=i_def),                intent(in) :: mesh_id
+    integer(kind=i_def),                intent(in) :: delta_t
+    type(r_tran_field_type),            intent(in) :: wind_pc_inp
+
+    ! Internal variables
+    type(wind_precomputations_type),       pointer :: wind_pc
+    type(r_tran_field_type),               pointer :: wind_ptr
+    real(kind=r_def)                               :: wind_inner_prod
+
+    wind_pc => transport_controller % get_wind_precomputations()
+    wind_ptr => wind_pc % get_wind_npdt( mesh_id, delta_t )
+
+    if ( wind_ptr % is_initialised() ) then
+      wind_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_y( wind_inner_prod, &
+                                     wind_ptr,        &
+                                     wind_pc_inp ) )
+      inner = inner + wind_inner_prod
+    end if
+
+  end subroutine wind_pc_npdt_inp_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by wind(dir).wind(dir)
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the wind precomputations
   !> @param[in]      mesh_id               Mesh id of the wind field
   !> @param[in]      direction             Direction of wind to add
   !> @param[in]      wind_sf               (Optional) scale factor for the increment
-  subroutine wind_pc_prod_rdef( inner,                &
-                                transport_controller, &
-                                mesh_id,              &
-                                direction,            &
-                                wind_sf )
+  subroutine wind_pc_dir_prod_rdef( inner,                &
+                                    transport_controller, &
+                                    mesh_id,              &
+                                    direction,            &
+                                    wind_sf )
     implicit none
 
     ! Arguments
@@ -339,30 +635,30 @@ module inner_from_controller_rdef_alg_mod
       if( present(wind_sf) ) then
         inner = inner + wind_inner_prod*wind_sf
         call invoke( inc_a_times_X(wind_sf, wind_ptr) )
-        write(log_scratch_space, *) "Wind precomputations(direction = ", direction, " inner prod = ", &
+        write(log_scratch_space, *) "Wind precomputations(direction = ", direction, ") inner prod = ", &
                                     wind_inner_prod*wind_sf
       else
         inner = inner + wind_inner_prod
-        write(log_scratch_space, *) "Wind precomputations(direction = ", direction, " inner prod = ", &
+        write(log_scratch_space, *) "Wind precomputations(direction = ", direction, ") inner prod = ", &
                                     wind_inner_prod
       end if
       call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
     end if
 
-  end subroutine wind_pc_prod_rdef
+  end subroutine wind_pc_dir_prod_rdef
 
   !=============================================================================
-  !> @brief Increments the rdef inner product by wind_pc.wind_pc_inp
+  !> @brief Increments the rdef inner product by wind(dir).wind_inp(dir)
   !> @param[in,out]  inner                 Inner product (rdef) to increment
   !> @param[in,out]  transport_controller  Transport controller object containing the wind precomputations
   !> @param[in]      mesh_id               Mesh id of the wind field
   !> @param[in]      direction             Direction of wind to add
   !> @param[in]      wind_pc_inp           Wind precomputation input fields at start of adjoint test
-  subroutine wind_pc_inp_prod_rdef( inner,                &
-                                    transport_controller, &
-                                    mesh_id,              &
-                                    direction,            &
-                                    wind_pc_inp )
+  subroutine wind_pc_dir_inp_prod_rdef( inner,                &
+                                        transport_controller, &
+                                        mesh_id,              &
+                                        direction,            &
+                                        wind_pc_inp )
     implicit none
 
     ! Arguments
@@ -388,6 +684,225 @@ module inner_from_controller_rdef_alg_mod
       inner = inner + wind_inner_prod
     end if
 
-  end subroutine wind_pc_inp_prod_rdef
+  end subroutine wind_pc_dir_inp_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by ref_field.ref_field
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object
+  !> @param[in]      ref_field_sf          (Optional) scale factor for the increment
+  subroutine ctrlr_ref_field_prod_rdef( inner,                &
+                                        transport_controller, &
+                                        ref_field_sf )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    real(kind=r_def),         optional, intent(in) :: ref_field_sf
+
+    ! Internal variables
+    type(r_tran_field_type),               pointer :: ref_field_ptr
+    real(kind=r_def)                               :: ref_field_inner_prod
+
+    ref_field_ptr => transport_controller % get_ref_field()
+
+    if ( ref_field_ptr % is_initialised() ) then
+      ref_field_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_x( ref_field_inner_prod, ref_field_ptr ) )
+
+      if( present(ref_field_sf) ) then
+        inner = inner + ref_field_inner_prod*ref_field_sf
+        call invoke( inc_a_times_X(ref_field_sf, ref_field_ptr) )
+        write(log_scratch_space, *) "Transport controller ref_field inner prod = ", &
+                                    ref_field_inner_prod*ref_field_sf
+      else
+        inner = inner + ref_field_inner_prod
+        write(log_scratch_space, *) "Transport controller ref_field inner prod = ", &
+                                    ref_field_inner_prod
+      end if
+      call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
+    end if
+
+  end subroutine ctrlr_ref_field_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by ref_field.ref_field_inp
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object
+  !> @param[in]      ref_field_inp         Reference field at start of adjoint test
+  subroutine ctrlr_ref_field_inp_prod_rdef( inner,                &
+                                            transport_controller, &
+                                            ref_field_inp )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    type(r_tran_field_type),            intent(in) :: ref_field_inp
+
+    ! Internal variables
+    type(r_tran_field_type),               pointer :: ref_field_ptr
+    real(kind=r_def)                               :: ref_field_inner_prod
+
+    ref_field_ptr => transport_controller % get_ref_field()
+
+    if ( ref_field_ptr % is_initialised() ) then
+      ref_field_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_y( ref_field_inner_prod, &
+                                     ref_field_ptr,        &
+                                     ref_field_inp ) )
+      inner = inner + ref_field_inner_prod
+    end if
+
+  end subroutine ctrlr_ref_field_inp_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by wind_npdt.wind_npdt
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object
+  !> @param[in]      delta_t               Enumerator selecting wind_np1 or wind_n
+  !> @param[in]      wind_sf               (Optional) scale factor for the increment
+  subroutine ctrlr_wind_npdt_prod_rdef( inner,                &
+                                        transport_controller, &
+                                        delta_t,              &
+                                        wind_sf )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    integer(kind=i_def),                intent(in) :: delta_t
+    real(kind=r_def),         optional, intent(in) :: wind_sf
+
+    ! Internal variables
+    type(r_tran_field_type),               pointer :: wind_ptr
+    real(kind=r_def)                               :: wind_inner_prod
+
+    wind_ptr => transport_controller % get_wind_npdt( delta_t )
+
+    if ( wind_ptr % is_initialised() ) then
+      wind_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_x( wind_inner_prod, wind_ptr ) )
+
+      if( present(wind_sf) ) then
+        inner = inner + wind_inner_prod*wind_sf
+        call invoke( inc_a_times_X(wind_sf, wind_ptr) )
+        write(log_scratch_space, *) "Transport controller wind(delta_t = ", delta_t, ") inner prod = ", &
+                                    wind_inner_prod*wind_sf
+      else
+        inner = inner + wind_inner_prod
+        write(log_scratch_space, *) "Transport controller wind(delta_t = ", delta_t, ") inner prod = ", &
+                                    wind_inner_prod
+      end if
+      call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
+    end if
+
+  end subroutine ctrlr_wind_npdt_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by wind_npdt.wind_npdt_inp
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the wind precomputations
+  !> @param[in]      delta_t               Enumerator selecting wind_np1 or wind_n
+  !> @param[in]      wind_inp              Input wind field at start of adjoint test
+  subroutine ctrlr_wind_npdt_inp_prod_rdef( inner,                &
+                                            transport_controller, &
+                                            delta_t,              &
+                                            wind_inp )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    integer(kind=i_def),                intent(in) :: delta_t
+    type(r_tran_field_type),            intent(in) :: wind_inp
+
+    ! Internal variables
+    type(r_tran_field_type),               pointer :: wind_ptr
+    real(kind=r_def)                               :: wind_inner_prod
+
+    wind_ptr => transport_controller % get_wind_npdt( delta_t )
+
+    if ( wind_ptr % is_initialised() ) then
+      wind_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_y( wind_inner_prod, &
+                                     wind_ptr,        &
+                                     wind_inp ) )
+      inner = inner + wind_inner_prod
+    end if
+
+  end subroutine ctrlr_wind_npdt_inp_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by transporting_wind.transporting_wind
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object
+  !> @param[in]      wind_sf               (Optional) scale factor for the increment
+  subroutine ctrlr_transporting_wind_prod_rdef( inner,                &
+                                                transport_controller, &
+                                                wind_sf )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    real(kind=r_def),         optional, intent(in) :: wind_sf
+
+    ! Internal variables
+    type(r_tran_field_type),               pointer :: wind_ptr
+    real(kind=r_def)                               :: wind_inner_prod
+
+    wind_ptr => transport_controller % get_transporting_wind()
+
+    if ( wind_ptr % is_initialised() ) then
+      wind_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_x( wind_inner_prod, wind_ptr ) )
+
+      if( present(wind_sf) ) then
+        inner = inner + wind_inner_prod*wind_sf
+        call invoke( inc_a_times_X(wind_sf, wind_ptr) )
+        write(log_scratch_space, *) "Transport controller transporting_wind inner prod = ", &
+                                    wind_inner_prod*wind_sf
+      else
+        inner = inner + wind_inner_prod
+        write(log_scratch_space, *) "Transport controller transporting_wind inner prod = ", &
+                                    wind_inner_prod
+      end if
+      call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
+    end if
+
+  end subroutine ctrlr_transporting_wind_prod_rdef
+
+  !=============================================================================
+  !> @brief Increments the rdef inner product by transporting_wind.transporting_wind_inp
+  !> @param[in,out]  inner                 Inner product (rdef) to increment
+  !> @param[in,out]  transport_controller  Transport controller object containing the wind precomputations
+  !> @param[in]      wind_inp              Input wind field at start of adjoint test
+  subroutine ctrlr_transporting_wind_inp_prod_rdef( inner,                &
+                                                    transport_controller, &
+                                                    wind_inp )
+    implicit none
+
+    ! Arguments
+    real(kind=r_def),                intent(inout) :: inner
+    type(transport_controller_type), intent(inout) :: transport_controller
+    type(r_tran_field_type),            intent(in) :: wind_inp
+
+    ! Internal variables
+    type(r_tran_field_type),               pointer :: wind_ptr
+    real(kind=r_def)                               :: wind_inner_prod
+
+    wind_ptr => transport_controller % get_transporting_wind()
+
+    if ( wind_ptr % is_initialised() ) then
+      wind_inner_prod = 0.0_r_def
+      call invoke( x_innerproduct_y( wind_inner_prod, &
+                                     wind_ptr,        &
+                                     wind_inp ) )
+      inner = inner + wind_inner_prod
+    end if
+
+  end subroutine ctrlr_transporting_wind_inp_prod_rdef
 
 end module inner_from_controller_rdef_alg_mod

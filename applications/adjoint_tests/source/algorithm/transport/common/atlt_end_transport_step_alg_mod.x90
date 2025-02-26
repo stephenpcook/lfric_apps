@@ -30,12 +30,12 @@ module atlt_end_transport_step_alg_mod
   use setup_test_alg_mod,                  only : setup_test_tl_transport_controller
   use transport_metadata_collection_mod,   only : transport_metadata_collection
   use transport_metadata_mod,              only : transport_metadata_type
-  use inner_from_controller_rtran_alg_mod, only : flux_counter_prod_rtran,     &
-                                                  flux_counter_inp_prod_rtran, &
-                                                  flux_pc_prod_rtran,          &
-                                                  flux_pc_inp_prod_rtran,      &
-                                                  field_n_counter_prod_rtran,  &
-                                                  field_n_counter_inp_prod_rtran
+  use inner_from_controller_rtran_alg_mod, only : flux_pc_ref_flux_prod_rtran,     &
+                                                  flux_pc_ref_flux_inp_prod_rtran, &
+                                                  counter_flux_prod_rtran,         &
+                                                  counter_flux_inp_prod_rtran,     &
+                                                  counter_field_n_prod_rtran,      &
+                                                  counter_field_n_inp_prod_rtran
   use init_from_controller_alg_mod,        only : init_counter_fieldvals, &
                                                   init_flux_pc_fieldvals
 
@@ -216,6 +216,10 @@ module atlt_end_transport_step_alg_mod
     type(r_tran_field_type), dimension(:), allocatable :: tctr_flux_inp
     type(r_tran_field_type), dimension(:), allocatable :: fpc_ls_wind_ref_flux_inp
     type(r_tran_field_type), dimension(:), allocatable :: fpc_pert_wind_ref_flux_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_field_1_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_mass_1_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_field_2_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_mass_2_inp
 
     ! Variables for initialising fields
     type(function_space_type), pointer :: vector_space_w2_ptr
@@ -254,10 +258,14 @@ module atlt_end_transport_step_alg_mod
     call init_flux_pc_fieldvals( mesh,                     &
                                  1_i_def,                  &
                                  fpc_ls_wind_ref_flux_inp, &
+                                 dummy_ref_field_1_inp,    &
+                                 dummy_ref_mass_1_inp,     &
                                  ls_transport_controller )
     call init_flux_pc_fieldvals( mesh,                       &
                                  1_i_def,                    &
                                  fpc_pert_wind_ref_flux_inp, &
+                                 dummy_ref_field_2_inp,      &
+                                 dummy_ref_mass_2_inp,       &
                                  pert_transport_controller )
 
     vector_space_w2_ptr => function_space_collection % get_fs(                 &
@@ -321,10 +329,10 @@ module atlt_end_transport_step_alg_mod
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
     write(log_scratch_space, *) "flux_pert_wind inner product = ", real( flux_pert_wind_inner_prod, r_tran )
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
-    call flux_pc_prod_rtran( inner1, ls_transport_controller, 1_i_def )
-    call flux_pc_prod_rtran( inner1, pert_transport_controller, 1_i_def )
-    call flux_counter_prod_rtran( inner1, pert_transport_controller )
-    call field_n_counter_prod_rtran( inner1, pert_transport_controller )
+    call flux_pc_ref_flux_prod_rtran( inner1, ls_transport_controller, 1_i_def )
+    call flux_pc_ref_flux_prod_rtran( inner1, pert_transport_controller, 1_i_def )
+    call counter_flux_prod_rtran( inner1, pert_transport_controller )
+    call counter_field_n_prod_rtran( inner1, pert_transport_controller )
 
     ! Adjoint alg call and inner products
     fnp1_fnp1_input_inner_prod = 0.0_r_def
@@ -359,12 +367,19 @@ module atlt_end_transport_step_alg_mod
     inner2 = inner2 + real( fi_fi_input_inner_prod, r_tran )
     inner2 = inner2 + real( flsw_flsw_input_inner_prod, r_tran )
     inner2 = inner2 + real( fpw_fpw_input_inner_prod, r_tran )
-    call flux_pc_inp_prod_rtran( inner2, ls_transport_controller, 1_i_def, fpc_ls_wind_ref_flux_inp )
-    call flux_pc_inp_prod_rtran( inner2, pert_transport_controller, 1_i_def, fpc_pert_wind_ref_flux_inp )
-    call flux_counter_inp_prod_rtran( inner2, pert_transport_controller, tctr_flux_inp )
-    call field_n_counter_inp_prod_rtran( inner2, pert_transport_controller, tctr_field_n_inp )
+    call flux_pc_ref_flux_inp_prod_rtran( inner2, ls_transport_controller, 1_i_def, fpc_ls_wind_ref_flux_inp )
+    call flux_pc_ref_flux_inp_prod_rtran( inner2, pert_transport_controller, 1_i_def, fpc_pert_wind_ref_flux_inp )
+    call counter_flux_inp_prod_rtran( inner2, pert_transport_controller, tctr_flux_inp )
+    call counter_field_n_inp_prod_rtran( inner2, pert_transport_controller, tctr_field_n_inp )
 
     call tl_transport_controller % finalise()
+    if ( allocated(tctr_flux_inp) )              deallocate( tctr_flux_inp )
+    if ( allocated(fpc_ls_wind_ref_flux_inp) )   deallocate( fpc_ls_wind_ref_flux_inp )
+    if ( allocated(fpc_pert_wind_ref_flux_inp) ) deallocate( fpc_pert_wind_ref_flux_inp )
+    if ( allocated(dummy_ref_field_1_inp) )      deallocate( dummy_ref_field_1_inp )
+    if ( allocated(dummy_ref_mass_1_inp) )       deallocate( dummy_ref_mass_1_inp )
+    if ( allocated(dummy_ref_field_2_inp) )      deallocate( dummy_ref_field_2_inp )
+    if ( allocated(dummy_ref_mass_2_inp) )       deallocate( dummy_ref_mass_2_inp )
 
     ! Test the inner-product values for equality, allowing for the precision of the active variables
     machine_tol = spacing( max( abs( inner1 ), abs( inner2 ) ) )

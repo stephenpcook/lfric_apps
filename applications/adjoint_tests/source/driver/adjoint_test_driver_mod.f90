@@ -32,11 +32,11 @@ contains
   subroutine run( model_clock )
 
     ! PSyAD generated tests
-    use gen_adj_kernel_tests_mod,           only : run_gen_adj_kernel_tests
+    use gen_adj_kernel_tests_mod,                   only : run_gen_adj_kernel_tests
 
     ! Handwritten kernel tests
     ! ./
-    use adjt_convert_cart2sphere_vector_alg_mod,    only : adjt_convert_cart2sphere_vector_alg
+    use adjt_sci_psykal_builtin_alg_mod,            only : adjt_convert_cart2sphere_vector_alg
 
     ! ./inter_function_space
     use adjt_sci_convert_hdiv_field_alg_mod,        only : adjt_sci_convert_hdiv_field_alg
@@ -56,7 +56,9 @@ contains
                                                            adjt_interp_w2_to_w3wth_alg
 
     ! ./transport/common
-    use adjt_flux_precomputations_alg_mod,          only : adjt_initialise_step_alg
+    use adjt_flux_precomputations_alg_mod,          only : adjt_flux_precomputations_initialiser_alg, &
+                                                           adjt_initialise_step_alg
+    use adjt_wind_precomputations_alg_mod,          only : adjt_wind_precomputations_initialiser_alg
     use adjt_end_transport_step_alg_mod,            only : adjt_build_up_flux_alg
     use atlt_end_transport_step_alg_mod,            only : atlt_end_adv_step_alg, &
                                                            atlt_end_con_step_alg
@@ -75,9 +77,16 @@ contains
 
     ! ./transport/control
     use atlt_transport_field_alg_mod,               only : atlt_transport_field_alg
+    use atlt_wind_transport_alg_mod,                only : atlt_wind_transport_alg
+    use atlt_moist_mr_transport_alg_mod,            only : atlt_moist_mr_transport_alg
+    use atlt_theta_transport_alg_mod,               only : atlt_theta_transport_alg
+    use adjt_transport_controller_alg_mod,          only : adjt_ls_wind_pert_rho_initialiser_alg, &
+                                                           adjt_pert_wind_ls_rho_initialiser_alg
+    use atlt_transport_controller_alg_mod,          only : atlt_transport_controller_initialiser_alg
+    use atlt_transport_control_alg_mod,             only : atlt_transport_control_alg
 
     ! Misc
-    use setup_test_alg_mod,                         only : setup_inverse_matrices
+    use setup_test_alg_mod,                         only : setup_test_constants
 
     implicit none
 
@@ -92,15 +101,12 @@ contains
     mesh => mesh_collection%get_mesh( prime_mesh_name )
     chi => get_coordinates( mesh%get_id() )
     panel_id => get_panel_id( mesh%get_id() )
-    call setup_inverse_matrices( mesh )
+    call setup_test_constants( mesh )
 
     call log_event( "TESTING generated adjoint kernels", LOG_LEVEL_INFO )
     call run_gen_adj_kernel_tests( mesh, chi, panel_id )
 
     call log_event( "TESTING adjoint kernels", LOG_LEVEL_INFO )
-    ! ./
-    call adjt_convert_cart2sphere_vector_alg( mesh )
-
     ! ./transport/mol
     call atlt_poly_adv_update_alg( mesh )
     call adjt_poly_adv_update_alg( mesh )
@@ -113,6 +119,10 @@ contains
     ! ./inter_function_space
     call adjt_sci_convert_hdiv_field_alg( mesh, chi, panel_id )
 
+    call log_event( "TESTING misc adjoints", LOG_LEVEL_INFO )
+    ! ./
+    call adjt_convert_cart2sphere_vector_alg( mesh )
+
     call log_event( "TESTING adjoint algorithms", LOG_LEVEL_INFO )
     ! ./interpolation
     call adjt_interp_w3wth_to_w2_alg( mesh )
@@ -120,6 +130,8 @@ contains
 
     ! ./transport/common
     call adjt_initialise_step_alg( mesh, model_clock )
+    call adjt_flux_precomputations_initialiser_alg( mesh, model_clock )
+    call adjt_wind_precomputations_initialiser_alg( mesh, model_clock )
     call adjt_build_up_flux_alg( mesh, model_clock )
     call atlt_end_adv_step_alg( mesh, model_clock )
     call atlt_end_con_step_alg( mesh, model_clock )
@@ -138,6 +150,13 @@ contains
 
     ! ./transport/control
     call atlt_transport_field_alg( mesh, model_clock )
+    call atlt_wind_transport_alg( mesh, model_clock )
+    call atlt_moist_mr_transport_alg( mesh, model_clock )
+    call atlt_theta_transport_alg( mesh, model_clock )
+    call adjt_ls_wind_pert_rho_initialiser_alg( mesh, model_clock )
+    call adjt_pert_wind_ls_rho_initialiser_alg( mesh, model_clock )
+    call atlt_transport_controller_initialiser_alg( mesh, model_clock )
+    call atlt_transport_control_alg( mesh, model_clock )
 
     call log_event( "TESTING COMPLETE", LOG_LEVEL_INFO )
 

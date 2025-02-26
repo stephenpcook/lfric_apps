@@ -32,14 +32,14 @@ module atlt_mol_conservative_alg_mod
   use transport_metadata_mod,              only : transport_metadata_type
   use transport_metadata_collection_mod,   only : transport_metadata_collection
   use setup_test_alg_mod,                  only : setup_test_tl_transport_controller
-  use inner_from_controller_rdef_alg_mod,  only : flux_counter_prod_rdef,        &
-                                                  flux_counter_inp_prod_rdef,    &
-                                                  flux_pc_prod_rdef,             &
-                                                  flux_pc_inp_prod_rdef,         &
-                                                  field_n_counter_prod_rdef,     &
-                                                  field_n_counter_inp_prod_rdef, &
-                                                  wind_pc_prod_rdef,             &
-                                                  wind_pc_inp_prod_rdef
+  use inner_from_controller_rdef_alg_mod,  only : flux_pc_ref_flux_prod_rdef,     &
+                                                  flux_pc_ref_flux_inp_prod_rdef, &
+                                                  counter_flux_prod_rdef,         &
+                                                  counter_flux_inp_prod_rdef,     &
+                                                  counter_field_n_prod_rdef,      &
+                                                  counter_field_n_inp_prod_rdef,  &
+                                                  wind_pc_dir_prod_rdef,          &
+                                                  wind_pc_dir_inp_prod_rdef
   use init_from_controller_alg_mod,        only : init_counter_fieldvals, &
                                                   init_flux_pc_fieldvals, &
                                                   init_wind_pc_fieldvals
@@ -100,6 +100,10 @@ module atlt_mol_conservative_alg_mod
     type(r_tran_field_type), dimension(:), allocatable :: tctr_flux_inp
     type(r_tran_field_type), dimension(:), allocatable :: fpc_ls_wind_ref_flux_inp
     type(r_tran_field_type), dimension(:), allocatable :: fpc_pert_wind_ref_flux_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_field_1_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_mass_1_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_field_2_inp
+    type(r_tran_field_type), dimension(:), allocatable :: dummy_ref_mass_2_inp
     type(r_tran_field_type)                            :: wind_pc_h_inp
     type(r_tran_field_type)                            :: wind_pc_v_inp
     type(r_tran_field_type)                            :: wind_pc_3d_inp
@@ -108,7 +112,7 @@ module atlt_mol_conservative_alg_mod
     real(kind=r_def),    parameter :: overall_tolerance = 1500.0_r_def
     real(kind=r_def)               :: machine_tol
     real(kind=r_def)               :: relative_diff
-    integer(kind=i_def), parameter :: outer = 1
+    integer(kind=i_def), parameter :: outer = 1_i_def
 
     mesh_id = mesh % get_id()
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, tctr_field_n, tctr_field_n_vs )
@@ -123,10 +127,14 @@ module atlt_mol_conservative_alg_mod
     call init_flux_pc_fieldvals( mesh,                     &
                                  1_i_def,                  &
                                  fpc_ls_wind_ref_flux_inp, &
+                                 dummy_ref_field_1_inp,    &
+                                 dummy_ref_mass_1_inp,     &
                                  ls_transport_controller )
     call init_flux_pc_fieldvals( mesh,                       &
                                  1_i_def,                    &
                                  fpc_pert_wind_ref_flux_inp, &
+                                 dummy_ref_field_2_inp,      &
+                                 dummy_ref_mass_2_inp,       &
                                  pert_transport_controller )
     call init_wind_pc_fieldvals( mesh,                     &
                                  wind_pc_h_inp,            &
@@ -180,13 +188,13 @@ module atlt_mol_conservative_alg_mod
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
     write(log_scratch_space, *) "field inner product = ", field_inner_prod
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
-    call flux_pc_prod_rdef( inner1, ls_transport_controller, 1_i_def )
-    call flux_pc_prod_rdef( inner1, pert_transport_controller, 1_i_def )
-    call flux_counter_prod_rdef( inner1, pert_transport_controller )
-    call field_n_counter_prod_rdef( inner1, pert_transport_controller )
-    call wind_pc_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_h )
-    call wind_pc_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_v )
-    call wind_pc_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_3d )
+    call flux_pc_ref_flux_prod_rdef( inner1, ls_transport_controller, 1_i_def )
+    call flux_pc_ref_flux_prod_rdef( inner1, pert_transport_controller, 1_i_def )
+    call counter_flux_prod_rdef( inner1, pert_transport_controller )
+    call counter_field_n_prod_rdef( inner1, pert_transport_controller )
+    call wind_pc_dir_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_h )
+    call wind_pc_dir_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_v )
+    call wind_pc_dir_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_3d )
 
     ! Adjoint alg call and inner products
     field_np1_field_np1_input_inner_prod = 0.0_r_def
@@ -207,15 +215,22 @@ module atlt_mol_conservative_alg_mod
     inner2 = 0.0_r_def
     inner2 = inner2 + field_np1_field_np1_input_inner_prod
     inner2 = inner2 + field_field_input_inner_prod
-    call flux_pc_inp_prod_rdef( inner2, ls_transport_controller, 1_i_def, fpc_ls_wind_ref_flux_inp )
-    call flux_pc_inp_prod_rdef( inner2, pert_transport_controller, 1_i_def, fpc_pert_wind_ref_flux_inp )
-    call flux_counter_inp_prod_rdef( inner2, pert_transport_controller, tctr_flux_inp )
-    call field_n_counter_inp_prod_rdef( inner2, pert_transport_controller, tctr_field_n_inp )
-    call wind_pc_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_h, wind_pc_h_inp )
-    call wind_pc_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
-    call wind_pc_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
+    call flux_pc_ref_flux_inp_prod_rdef( inner2, ls_transport_controller, 1_i_def, fpc_ls_wind_ref_flux_inp )
+    call flux_pc_ref_flux_inp_prod_rdef( inner2, pert_transport_controller, 1_i_def, fpc_pert_wind_ref_flux_inp )
+    call counter_flux_inp_prod_rdef( inner2, pert_transport_controller, tctr_flux_inp )
+    call counter_field_n_inp_prod_rdef( inner2, pert_transport_controller, tctr_field_n_inp )
+    call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_h, wind_pc_h_inp )
+    call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
+    call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
 
     call tl_transport_controller % finalise()
+    if ( allocated(tctr_flux_inp) )              deallocate( tctr_flux_inp )
+    if ( allocated(fpc_ls_wind_ref_flux_inp) )   deallocate( fpc_ls_wind_ref_flux_inp )
+    if ( allocated(fpc_pert_wind_ref_flux_inp) ) deallocate( fpc_pert_wind_ref_flux_inp )
+    if ( allocated(dummy_ref_field_1_inp) )      deallocate( dummy_ref_field_1_inp )
+    if ( allocated(dummy_ref_mass_1_inp) )       deallocate( dummy_ref_mass_1_inp )
+    if ( allocated(dummy_ref_field_2_inp) )      deallocate( dummy_ref_field_2_inp )
+    if ( allocated(dummy_ref_mass_2_inp) )       deallocate( dummy_ref_mass_2_inp )
 
     ! Test the inner-product values for equality, allowing for the precision of the active variables
     machine_tol = spacing( max( abs( inner1 ), abs( inner2 ) ) )

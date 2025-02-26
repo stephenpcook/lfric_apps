@@ -112,7 +112,7 @@ contains
 
     ! Arguments
     type(r_tran_field_type),         intent(inout) :: field_np1
-    type(r_tran_field_type),       intent(in)    :: field_in
+    type(r_tran_field_type),            intent(in) :: field_in
     type(r_tran_field_type),         intent(inout) :: flux_pert_wind
     type(r_tran_field_type),         intent(inout) :: flux_ls_wind
     type(flux_precomputations_type), intent(inout) :: flux_precomp_ls_wind
@@ -229,7 +229,6 @@ contains
     ! Combine fluxes from each part of the calculation
     call invoke( inc_X_plus_Y( flux_pert_wind, flux ), &
                  inc_X_plus_Y( flux_ls_wind, flux ) )
-    ! And then setval_c(flux, 0) but this can be omitted for faster runtime
 
   end subroutine atl_end_conservative_step_alg
 

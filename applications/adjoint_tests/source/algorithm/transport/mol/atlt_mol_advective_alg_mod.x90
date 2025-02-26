@@ -24,8 +24,8 @@ module atlt_mol_advective_alg_mod
   use transport_metadata_collection_mod,   only : transport_metadata_collection
   use transport_metadata_mod,              only : transport_metadata_type
   use transport_enumerated_types_mod,      only : direction_3d
-  use inner_from_controller_rdef_alg_mod,  only : wind_pc_prod_rdef, &
-                                                  wind_pc_inp_prod_rdef
+  use inner_from_controller_rdef_alg_mod,  only : wind_pc_dir_prod_rdef,      &
+                                                  wind_pc_dir_inp_prod_rdef
   use init_from_controller_alg_mod,        only : init_wind_pc_fieldvals
   use transport_enumerated_types_mod,      only : direction_3d, &
                                                   direction_h,  &
@@ -149,9 +149,9 @@ module atlt_mol_advective_alg_mod
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
     write(log_scratch_space, *) "field inner product = ", field_inner_prod
     call log_event( log_scratch_space, LOG_LEVEL_DEBUG )
-    call wind_pc_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_h )
-    call wind_pc_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_v )
-    call wind_pc_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_3d )
+    call wind_pc_dir_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_h )
+    call wind_pc_dir_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_v )
+    call wind_pc_dir_prod_rdef( inner1, pert_transport_controller, mesh_id, direction_3d )
 
     ! Adjoint alg call and inner products
     field_np1_field_np1_input_inner_prod = 0.0_r_def
@@ -171,9 +171,9 @@ module atlt_mol_advective_alg_mod
     inner2 = 0.0_r_def
     inner2 = inner2 + field_np1_field_np1_input_inner_prod
     inner2 = inner2 + field_field_input_inner_prod
-    call wind_pc_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_h, wind_pc_h_inp )
-    call wind_pc_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
-    call wind_pc_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
+    call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_h, wind_pc_h_inp )
+    call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
+    call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
 
     call tl_transport_controller % finalise()
 

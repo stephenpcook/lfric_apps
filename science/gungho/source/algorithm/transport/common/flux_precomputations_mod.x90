@@ -706,12 +706,8 @@ contains
   !!        calculates the field if it hasn't already been)
   !> @param[in]  mesh_id  Identifier of the mesh to get the field for
   !> @param[in]  step     Index of the split step (of whole transport step)
-  !> @param[in]  skip_check_init  (Optional) flag to skip check on whether flux
-  !!                              has already been initialised. This is used
-  !!                              by the adjoint, where we may want to return
-  !!                              the uninitialised flux field.
   !> @return The reference flux for the given mesh and step
-  function get_ref_flux(self, mesh_id, step, skip_check_init) result(ref_flux)
+  function get_ref_flux(self, mesh_id, step) result(ref_flux)
 
     use sci_consist_w2_to_sh_w2_kernel_mod,   only: consist_w2_to_sh_w2_kernel_type
     use sci_consist_w2h_to_sh_w2h_kernel_mod, only: consist_w2h_to_sh_w2h_kernel_type
@@ -722,7 +718,6 @@ contains
     class(flux_precomputations_type), target, intent(inout) :: self
     integer(kind=i_def),                      intent(in)    :: mesh_id
     integer(kind=i_def),                      intent(in)    :: step
-    logical(kind=l_def),            optional, intent(in)    :: skip_check_init
 
     ! Internal variables
     character(len=str_def)             :: field_name
@@ -734,7 +729,6 @@ contains
     type(integer_field_type),  pointer :: face_selector_ew
     type(integer_field_type),  pointer :: face_selector_ns
     type(r_tran_field_type),   pointer :: ref_flux
-    logical(kind=l_def)                :: skip_check
 
     ! If substepping, step can exceed num_steps, so take that into account here
     ! This is because, when transporting by the wind field (and using unity as
@@ -795,13 +789,10 @@ contains
 
     ! Point to existing field
     ref_flux => self%ref_flux(mesh_idx, step_idx)
-    skip_check = .false.
-    if (present(skip_check_init)) skip_check = skip_check_init
-    if (.not. skip_check) then
-      ! Check if flux is initialised and return a helpful error if not
-      write(field_name, '(A,I8)') adjustl(trim(self%name)) // ' reference flux, step ', step
-      call check_initialised_field(ref_flux, field_name, mesh_id)
-    end if
+
+    ! Check if flux is initialised and return a helpful error if not
+    write(field_name, '(A,I8)') adjustl(trim(self%name)) // ' reference flux, step ', step
+    call check_initialised_field(ref_flux, field_name, mesh_id)
 
   end function get_ref_flux
 
