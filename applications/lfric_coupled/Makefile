@@ -23,6 +23,7 @@ export PROJECT_DIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 export IGNORE_DEPENDENCIES += mod_oasis
 export EXTERNAL_STATIC_LIBRARIES += psmile.MPI1 mct mpeu scrip
 
+# Note - socrates_interface must come before jules_interface as there are dependencies on each other.
 export INTERNAL_DEPENDENCIES = $(CORE_ROOT_DIR)/infrastructure \
                                $(CORE_ROOT_DIR)/components/coupling \
                                $(CORE_ROOT_DIR)/components/driver \
@@ -30,8 +31,8 @@ export INTERNAL_DEPENDENCIES = $(CORE_ROOT_DIR)/infrastructure \
                                $(CORE_ROOT_DIR)/components/inventory \
                                $(CORE_ROOT_DIR)/components/lfric-xios \
                                $(APPS_ROOT_DIR)/science/shared \
-                               $(APPS_ROOT_DIR)/interfaces/jules_interface \
                                $(APPS_ROOT_DIR)/interfaces/socrates_interface \
+                               $(APPS_ROOT_DIR)/interfaces/jules_interface \
                                $(APPS_ROOT_DIR)/interfaces/physics_schemes_interface
 
 META_VN       ?= HEAD
