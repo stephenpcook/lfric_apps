@@ -17,6 +17,7 @@
         "python_unit_tests",
         "local_build_test",
         "test_launch-exe",
+        "macro_chains_checker",
     ],
     "spice_developer": [],
     "spice": ["spice_developer"],

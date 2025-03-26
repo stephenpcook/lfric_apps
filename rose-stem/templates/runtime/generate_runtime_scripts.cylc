@@ -77,6 +77,12 @@
         [[[environment]]]
             launch_exe_meto_path = $CYLC_WORKFLOW_RUN_DIR/site/meto/common/bin/launch-exe
 
+{% elif "macro_chains_checker" in task %}
+
+    [[{{task}}]]
+        inherit={{inherit.str|upper}}
+        script="rose task-run --app-key=check_macro_chains"
+
 {% elif "validate_rose_meta" in task %}
 
     [[{{task}}]]
