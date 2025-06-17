@@ -375,3 +375,15 @@ class vn21_t208(MacroUpgrade):
             )
 
         return config, self.reports
+
+
+class vn21_t255(MacroUpgrade):
+    """Upgrade macro for ticket #255 by Christine Johnson."""
+
+    BEFORE_TAG = "vn2.1_t208"
+    AFTER_TAG = "vn2.1_t255"
+
+    def upgrade(self, config, meta_config=None):
+        # Commands From: rose-meta/lfric-gungho
+        # Blank Upgrade Macro
+        return config, self.reports

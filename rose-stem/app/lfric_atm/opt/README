@@ -17,12 +17,12 @@ Horizontal mesh information:
 - BiP2x2-50000x50000 - SCM mesh, setup with no dynamics
 - BiP64x64-100x100_MG, BiP64x64-250x250_MG, BiP64x64-500x500_MG,
   BiP64x64-1500x1500_MG - various resolution bicyclic lam domains
-- seuk_MG - small UK LBC forced LAM - includes LBC and ancillary information
-- uk_MG - large UK LBC forced LAM - includes LBC and ancillary information
-- ukv_MG - variable resolution UK LBC forced LAM - includes LBC and ancillary
-           information
-- comp_perf_MG - UK computational performance domain - includes LBC and
-                 ancillary information
+- seuk_MG - small UK LBC forced LAM, with input files and date
+- uk_MG - UK LBC forced LAM (648 x 648), with input files and date
+- uk_672x672_MG - UK LBC forced LAM (672x672), with input files and date
+- ukv_MG - variable resolution UK LBC forced LAM, with input files and date
+- comp_perf_MG - UK computational performance domain, with input files and date
+- melbourne_MG - Melbourne LBC forced LAM, with input files and date
 
 Vertical mesh information:
 - l85_85km - standard climate level set
@@ -49,8 +49,9 @@ Science settings
 - no_aerosol - use no aerosol scheme (fixed cloud drop number)
 - no_dust - don't use interactive dust
 - ral3 - regional configuration
-- ral3_ens - ensemble regional configuration
+- ral3_ens - extra config for regional ensembles (including stochastic physics)
 - ral3_scm - single column regional physics (includes convection scheme)
+- ral_opts - extra options for regional models, including LBC blending weights
 - ukca - UKCA Glomap aerosol scheme
 - urban2t - 2-tile urban scheme
 - dry_atm - a dry atmosphere
