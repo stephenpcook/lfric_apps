@@ -12,7 +12,8 @@
 {% include 'site/meto/common/suite_config_ex1a.cylc' %}
 {% include 'site/meto/common/suite_config_azspice.cylc' %}
 
-{% if "lfricinputs" in requested_applications %}
+{% if "lfricinputs" in requested_applications or
+      "lfric2lfric" in requested_applications %}
     {% include 'site/meto/common/suite_config_lfricinputs.cylc' %}
 {% endif %}
 {% if "lfric_coupled" in requested_applications %}

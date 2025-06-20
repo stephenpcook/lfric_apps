@@ -31,8 +31,7 @@
     {% do task_dict.update({"optlevel": "production"}) %}
 
 {% elif "unit_tests" not in task
-        and "integration_tests" not in task
-        and task_ns.application != "lfricinputs" %}
+        and "integration_tests" not in task %}
 
     {{ raise("A task failed to define a valid optimisation level: "~task) }}
 
@@ -41,26 +40,19 @@
 {# Get the precision info from the custom filter #}
 {# Record precisions in dictionary entry for precision #}
 {# Append to build_conf #}
-{% if task_ns.application != "lfricinputs" %}
 
-    {% set precision_output = task_ns.extras|get_precision() %}
-    {% do task_dict.update({"precision": precision_output[0]}) %}
+{% set precision_output = task_ns.extras|get_precision() %}
+{% do task_dict.update({"precision": precision_output[0]}) %}
 
-    {# If the build setting is just the compiler need to append the precision #}
-    {# with an underscore to ensure future split_task macro calls succeed. #}
-    {# Otherwise join with a dash #}
-    {% if build_conf != task_ns.compiler %}
-        {% set joiner = "-" %}
-    {% else %}
-        {% set joiner = "_" %}
-    {% endif %}
-    {% set build_conf = build_conf~joiner~precision_output[1] %}
-
+{# If the build setting is just the compiler need to append the precision #}
+{# with an underscore to ensure future split_task macro calls succeed. #}
+{# Otherwise join with a dash #}
+{% if build_conf != task_ns.compiler %}
+    {% set joiner = "-" %}
 {% else %}
-
-    {% set build_conf = build_conf~"_"~task_ns.extras %}
-
+    {% set joiner = "_" %}
 {% endif %}
+{% set build_conf = build_conf~joiner~precision_output[1] %}
 
 {% do task_dict.update({"build_conf": build_conf}) %}
 

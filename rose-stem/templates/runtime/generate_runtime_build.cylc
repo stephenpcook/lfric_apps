@@ -60,6 +60,9 @@
             R_PHYS_PRECISION        = {{task_values["precision"]["rphys"]}}
             PRE_PROCESS_MACROS      = {{task_values["pre_process_macros"]}}
             PAT_BUILD_PATH          = {{PAT_BUILD_APP}}
+{% if task_ns.application == "lfricinputs" %}
+            PROGRAMS                = {{task_values["app_name"]}}
+{% endif %}
 
         [[[directives]]]
 {{ set_task_resources(task_values["build_cpus"], task_values["build_memory"]) }}

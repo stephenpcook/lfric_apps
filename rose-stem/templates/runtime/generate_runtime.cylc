@@ -30,21 +30,18 @@
 
     {% set task_family = task_values["task_family"] %}
 
+    {% set build_segment = task_ns.application %}
+    {% if task_ns.application == "lfricinputs" %}
+        {% set build_segment = task_values["app_name"] %}
+    {% endif %}
+    {% set build_segment = build_segment~"/"~task_values["build_conf"] %}
+
     {# Set directories for this task #}
     {% set destination_dir = "$OUTPUT_ROOT" %}
     {% set checkpoint_dir = "$CYLC_WORKFLOW_SHARE_DIR/data" %}
-    {% set bin_dir = destination_dir~
-                     "/bin/"~
-                     task_ns.application~"/"~
-                     task_values["build_conf"] %}
-    {% set lib_dir = destination_dir~
-                     "/lib/"~
-                     task_ns.application~"/"~
-                     task_values["build_conf"] %}
-    {% set mod_dir = destination_dir~
-                     "/mod/"~
-                     task_ns.application~"/"~
-                     task_values["build_conf"] %}
+    {% set bin_dir = destination_dir~"/bin/"~build_segment %}
+    {% set lib_dir = destination_dir~"/lib/"~build_segment %}
+    {% set mod_dir = destination_dir~"/mod/"~build_segment %}
     {% if task_ns.conf_name == "canned" %}
         {% set mesh_dir = "$CYLC_TASK_WORK_DIR" %}
     {% else %}
@@ -58,10 +55,7 @@
         {% set task_output_dir = task_output_dir~
                                  "-crun"~task_values["restart_no"] %}
     {% endif %}
-    {% set working_dir = "$BUILD_ROOT/"~
-                         task_values["build_conf"]~"/"~
-                         "$CYLC_WORKFLOW_ID/"~
-                         task_ns.application %}
+    {% set working_dir = "$BUILD_ROOT/$CYLC_WORKFLOW_ID/"~build_segment%}
 
     {# Import macros to set custom directive values for this platform #}
     {% from "site/"~SITE~"/macros/macros_"~task_ns.platform~".cylc" import
@@ -76,13 +70,17 @@
 
         {% include "templates/runtime/generate_runtime_technical-tests.cylc" %}
 
-    {% elif task_ns.application == "lfricinputs" %}
+    {% elif "generate_weights" in task %}
 
-        {% include "templates/runtime/generate_runtime_lfricinputs.cylc" %}
+        {% include "templates/runtime/generate_runtime_gen_weights.cylc" %}
 
     {% elif task.startswith("build") %}
 
         {% include "templates/runtime/generate_runtime_build.cylc" %}
+
+    {% elif task_ns.application == "lfricinputs" %}
+
+        {% include "templates/runtime/generate_runtime_lfricinputs.cylc" %}
 
     {% elif task_ns.application == "mesh" %}
 

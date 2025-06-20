@@ -20,7 +20,10 @@ WORKING_CONFIGS = {
         "gungho_model_baroclinic-C24_MG_azspice_gnu_fast-debug-64bit",
         "build_gungho_model_azspice_gnu_fast-debug-64bit",
     ],
-    "nci": ["all"],
+    "nci": [
+        "gungho_model_gadi_developer",
+        "lfric_atm_gadi_developer"
+    ],
     "niwa" : ["all"],
     "ncas" : ["archer2_atm"],
     "uoe" : ["all"],

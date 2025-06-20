@@ -7,136 +7,11 @@
 
 {# Generate the runtime sections for all lfricinputs tasks #}
 
-{# Set some variables containing build info #}
-{% set fortran_compiler = task_ns.compiler.split("-")[0] %}
-{% set c_compiler = task_ns.compiler.split("-")[1] %}
-{% set fcm_config = SITE~"-"~
-                    task_ns.platform~"-"~
-                    task_ns.compiler %}
-{% set build_string = task_ns.application~"_"~
-                      task_values["app_name"]~"_"~
-                      task_ns.platform~"_"~
-                      task_ns.compiler~"_"~
-                      task_ns.extras %}
-
-{# Define a task family if not a build task #}
-{% if task.startswith("run") or
-      task.startswith("rose_ana") %}
-
     [[{{task_family|upper}}]]
         inherit={{task_ns.application|upper}}_{{task_ns.platform|upper}}
 
-{% elif task.startswith("generate_weights") %}
 
-    [[GENERATE_WEIGHTS]]
-
-{% endif %}
-
-
-{% if task.startswith("fcm_make") %}
-
-    [[{{task}}]]
-    {% if SITE == "nci" and task.startswith("fcm_make_") %}
-        {# 2-builds require different treatment at NCI #}
-        inherit = BUILD_{{task_ns.application|upper}}_{{task_ns.platform|upper}}, \
-                  LOCAL, \
-                  LFRICINPUTS_BASE
-    {% else %}
-        inherit = BUILD_{{task_ns.application|upper}}_{{task_ns.platform|upper}}, \
-                  LFRICINPUTS_BASE, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_{{task_ns.compiler|upper}}, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_2_TASKS, \
-                  {{task_ns.platform|upper}}_LFRICINPUTS
-    {% endif %}
-        script = rose task-run --verbose --define='args=--archive'
-        execution retry delays = 3*PT1M
-        [[[environment]]]
-            CONFIG = {{fcm_config}}
-            LEVEL = {{task_ns.extras}}
-            LFRICINPUTS_UTIL = {{task_values["app_name"]}}
-            ROSE_TASK_APP = fcm_make_{{task_values["app_name"]}}
-            ROSE_TASK_N_JOBS = 2
-            FFLAGS={{FFLAGS}}
-            LDFLAGS={{LDFLAGS}}
-
-
-{% elif task.startswith("template") %}
-
-    [[{{task}}]]
-        inherit = BUILD_{{task_ns.application|upper}}_{{task_ns.platform|upper}}, \
-                  LFRICINPUTS_BASE, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_{{task_ns.compiler|upper}}, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_1_TASKS, \
-                  {{task_ns.platform|upper}}_LFRICINPUTS
-        [[[environment]]]
-            ROSE_TASK_APP = template
-            BUILD_NAME = fcm_make_{{build_string}}
-            LFRIC_APPS_DIR = $CYLC_WORKFLOW_SHARE_DIR/fcm_make_{{build_string}}/extract/lfric_apps
-            LFRIC_CORE_DIR = $CYLC_WORKFLOW_SHARE_DIR/fcm_make_{{build_string}}/extract/lfric_core
-
-
-{% elif task.startswith("configurate") %}
-
-    [[{{task}}]]
-        inherit = BUILD_{{task_ns.application|upper}}_{{task_ns.platform|upper}}, \
-                  LFRICINPUTS_BASE, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_{{task_ns.compiler|upper}}, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_1_TASKS, \
-                  {{task_ns.platform|upper}}_LFRICINPUTS
-        [[[environment]]]
-            PYTHONPATH = $CYLC_WORKFLOW_SHARE_DIR/fcm_make_{{build_string}}/extract/lfric/GPL/lib/python:
-            ROSE_TASK_APP = configurate
-            BUILD_NAME = fcm_make_{{build_string}}
-            LFRIC_APPS_DIR = $CYLC_WORKFLOW_SHARE_DIR/fcm_make_{{build_string}}/extract/lfric_apps
-            LFRIC_CORE_DIR = $CYLC_WORKFLOW_SHARE_DIR/fcm_make_{{build_string}}/extract/lfric_core
-
-{% elif task.startswith("psyclone") %}
-
-    [[{{task}}]]
-        inherit = BUILD_{{task_ns.application|upper}}_{{task_ns.platform|upper}}, \
-                  LFRICINPUTS_BASE, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_{{task_ns.compiler|upper}}, \
-                  {{SITE|upper}}_{{task_ns.platform|upper}}_1_TASKS, \
-                  {{task_ns.platform|upper}}_LFRICINPUTS
-        [[[environment]]]
-            ROSE_TASK_APP = psyclone
-            BUILD_NAME = fcm_make_{{build_string}}
-
-
-{% elif task.startswith("generate_weights") %}
-{# Generate Weights tasks are assumed to run on the Scripts Platform - Spice for meto #}
-
-    [[{{task}}]]
-        inherit = GENERATE_WEIGHTS, \
-                  LFRICINPUTS_BASE, \
-                  {{site_vars["scripts_platform"]|upper}}_WEIGHTS
-        script = rose task-run --app-key=generate_weights
-        [[[environment]]]
-            MPIRUN_N_JOBS = 8
-            INTERPOLATION_DIRECTION = {{task_values["app_name"]}}
-            LFRIC_MESH_FILE = {{mesh_dir}}/mesh_{{task_values["resolution"]}}.nc
-            LFRIC_MESH_NAME = {{task_values["mesh_name"]}}
-    {% if task_values["app_name"] == "um2lfric" %}
-            WEIGHT_GEN_OPTION = {{task_values["weight_gen_option"]}}
-            UM_START_DUMP = {{task_values["source_dump"]}}
-            VARRES_FILE = {{task_values["var_res_src"]}}
-            NLIST_FILE = {{task_values["namelist_src"]}}
-            UM_GRID_RESOLUTION =
-            GRID_TYPE_UM = {{task_values["source_grid_type"]}}
-            GRID_TYPE_LFRIC = {{task_values["target_grid_type"]}}
-    {% elif task_values["app_name"] == "lfric2um" %}
-            WEIGHT_GEN_OPTION = specified-resolution
-            UM_START_DUMP =
-            VARRES_FILE =
-            UM_GRID_RESOLUTION = {{task_values["target_grid_res"]|replace("N", "")}}
-            NLIST_FILE = {{task_values["namelist_src"]}}
-            GRID_TYPE_UM = {{task_values["target_grid_type"]}}
-            GRID_TYPE_LFRIC = {{task_values["source_grid_type"]}}
-    {% endif %}
-        [[[directives]]]
-            {{ set_task_resources(8, [16, "GB"]) }}
-
-{% elif task.startswith("run") %}
+{% if task.startswith("run") %}
 {# um2lfric, lfric2um or scintel #}
 
     {% set opt_confs = namespace(vals=task_values["opt_confs"][0]) %}
@@ -162,7 +37,7 @@
                   {{resource_family|upper}}, \
                   {{task_ns.platform|upper}}_LFRICINPUTS
         env-script = "eval $(rose task-env)"
-        script = rose task-run --verbose --path= --path='share/fcm_make_{{build_string}}/build/bin'
+        script = rose task-run --verbose --path= --path="{{bin_dir}}"
         post-script = """
                       find . -regex '.*PET0+\..+\.Log' -exec cp {} $ROSE_TASK_LOG_DIR \;
                       find . -regex '.*PET0+\..+\.Log' -exec cat {} \;
@@ -195,7 +70,7 @@
                   ROSE_ANA_{{task_ns.platform|upper}}
         [[[environment]]]
             SUITE_DIR=../{{rose_ana_run_task}}
-            KGO_DIR={{site_vars["lfricinputs_kgo_base"]}}/{{task_values["task_family"]}}/{{kgo_vars[task_values["task_family"]]|default("no_kgo_var")}}
+            KGO_DIR={{site_vars["lfricinputs_kgo_base"]}}/{{task_values["task_family"]}}/{{kgo_vars[task_values["task_family"]]|default("vn2.1")}}
             ROSE_TASK_APP={{rose_ana_app}}
 
 {% endif %}
