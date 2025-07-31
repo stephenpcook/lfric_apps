@@ -78,15 +78,15 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                            :: mesh_id_from_idx
     real(kind=r_def)                               :: flux_inner_prod
 
-    flux_pc => transport_controller % get_flux_precomputations()
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
-    num_steps = flux_pc % get_num_steps()
+    flux_pc => transport_controller%get_flux_precomputations()
+    mesh_id_from_idx = flux_pc%get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc%get_num_steps()
     do step = 1, num_steps
 
-      ref_flux_ptr => flux_pc % get_ref_flux( mesh_id_from_idx, &
-                                              step  )
+      ref_flux_ptr => flux_pc%get_ref_flux( mesh_id_from_idx, &
+                                            step  )
       flux_inner_prod = 0.0_r_def
-      if ( ref_flux_ptr % is_initialised() ) then
+      if ( ref_flux_ptr%is_initialised() ) then
         call invoke( x_innerproduct_x( flux_inner_prod, ref_flux_ptr ) )
         flux_sf = 1.0_r_def/(flux_inner_prod + eps)
         inner = inner + flux_inner_prod*flux_sf
@@ -126,15 +126,15 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                               :: mesh_id_from_idx
     real(kind=r_def)                                  :: flux_inner_prod
 
-    flux_pc => transport_controller % get_flux_precomputations()
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
-    num_steps = flux_pc % get_num_steps()
+    flux_pc => transport_controller%get_flux_precomputations()
+    mesh_id_from_idx = flux_pc%get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc%get_num_steps()
     do step = 1, num_steps
 
-      ref_flux_ptr => flux_pc % get_ref_flux( mesh_id_from_idx, &
-                                              step )
+      ref_flux_ptr => flux_pc%get_ref_flux( mesh_id_from_idx, &
+                                            step )
       flux_inner_prod = 0.0_r_def
-      if ( ref_flux_ptr % is_initialised() ) then
+      if ( ref_flux_ptr%is_initialised() ) then
         call invoke( x_innerproduct_y( flux_inner_prod, &
                                        ref_flux_ptr,    &
                                        flux_pc_ref_flux_inp(step) ) )
@@ -170,16 +170,16 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                            :: mesh_id_from_idx
     real(kind=r_def)                               :: field_inner_prod
 
-    flux_pc => transport_controller % get_flux_precomputations()
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
-    num_steps = flux_pc % get_num_steps()
+    flux_pc => transport_controller%get_flux_precomputations()
+    mesh_id_from_idx = flux_pc%get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc%get_num_steps()
     do step = 1, num_steps + 1
 
-      ref_field_ptr => flux_pc % get_ref_field( mesh_id_from_idx, &
-                                                step )
+      ref_field_ptr => flux_pc%get_ref_field( mesh_id_from_idx, &
+                                              step )
 
       field_inner_prod = 0.0_r_def
-      if ( ref_field_ptr % is_initialised() ) then
+      if ( ref_field_ptr%is_initialised() ) then
         call invoke( x_innerproduct_x( field_inner_prod, ref_field_ptr ) )
         field_sf = 1.0_r_def/(field_inner_prod + eps)
         inner = inner + field_inner_prod*field_sf
@@ -218,16 +218,16 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                               :: mesh_id_from_idx
     real(kind=r_def)                                  :: field_inner_prod
 
-    flux_pc => transport_controller % get_flux_precomputations()
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
-    num_steps = flux_pc % get_num_steps()
+    flux_pc => transport_controller%get_flux_precomputations()
+    mesh_id_from_idx = flux_pc%get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc%get_num_steps()
     do step = 1, num_steps + 1
 
-      ref_field_ptr => flux_pc % get_ref_field( mesh_id_from_idx, &
-                                                step )
+      ref_field_ptr => flux_pc%get_ref_field( mesh_id_from_idx, &
+                                              step )
 
       field_inner_prod = 0.0_r_def
-      if ( ref_field_ptr % is_initialised() ) then
+      if ( ref_field_ptr%is_initialised() ) then
         call invoke( x_innerproduct_y( field_inner_prod, &
                                        ref_field_ptr,    &
                                        flux_pc_ref_field_inp(step) ) )
@@ -262,16 +262,16 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                            :: mesh_id_from_idx
     real(kind=r_def)                               :: mass_inner_prod
 
-    flux_pc => transport_controller % get_flux_precomputations()
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
-    num_steps = flux_pc % get_num_steps()
+    flux_pc => transport_controller%get_flux_precomputations()
+    mesh_id_from_idx = flux_pc%get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc%get_num_steps()
     do step = 1, num_steps + 1
 
-      ref_mass_ptr => flux_pc % get_ref_mass( mesh_id_from_idx, &
-                                              step )
+      ref_mass_ptr => flux_pc%get_ref_mass( mesh_id_from_idx, &
+                                            step )
 
       mass_inner_prod = 0.0_r_def
-      if ( ref_mass_ptr % is_initialised() ) then
+      if ( ref_mass_ptr%is_initialised() ) then
         call invoke( x_innerproduct_x( mass_inner_prod, ref_mass_ptr ) )
         mass_sf = 1.0_r_def/(mass_inner_prod + eps)
         inner = inner + mass_inner_prod*mass_sf
@@ -310,16 +310,16 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                               :: mesh_id_from_idx
     real(kind=r_def)                                  :: mass_inner_prod
 
-    flux_pc => transport_controller % get_flux_precomputations()
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
-    num_steps = flux_pc % get_num_steps()
+    flux_pc => transport_controller%get_flux_precomputations()
+    mesh_id_from_idx = flux_pc%get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc%get_num_steps()
     do step = 1, num_steps + 1
 
-      ref_mass_ptr => flux_pc % get_ref_mass( mesh_id_from_idx, &
-                                              step )
+      ref_mass_ptr => flux_pc%get_ref_mass( mesh_id_from_idx, &
+                                            step )
 
       mass_inner_prod = 0.0_r_def
-      if ( ref_mass_ptr % is_initialised() ) then
+      if ( ref_mass_ptr%is_initialised() ) then
         call invoke( x_innerproduct_y( mass_inner_prod, &
                                        ref_mass_ptr,    &
                                        flux_pc_ref_mass_inp(step) ) )
@@ -350,13 +350,13 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                            :: num_steps
     real(kind=r_def)                               :: flux_inner_prod
 
-    transport_counter => transport_controller % get_transport_counter()
-    num_steps = transport_counter % get_num_split_steps_per_substep() - 1
+    transport_counter => transport_controller%get_transport_counter()
+    num_steps = transport_counter%get_num_split_steps_per_substep() - 1
     do step = 1, num_steps
-      flux_ptr => transport_counter % get_flux( step )
+      flux_ptr => transport_counter%get_flux( step )
 
       flux_inner_prod = 0.0_r_def
-      if ( flux_ptr % is_initialised() ) then
+      if ( flux_ptr%is_initialised() ) then
         call invoke( x_innerproduct_x( flux_inner_prod, flux_ptr ) )
         flux_sf = 1.0_r_def/(flux_inner_prod + eps)
         inner = inner + flux_inner_prod*flux_sf
@@ -392,13 +392,13 @@ module inner_from_controller_rdef_alg_mod
     integer(kind=i_def)                               :: num_steps
     real(kind=r_def)                                  :: flux_inner_prod
 
-    transport_counter => transport_controller % get_transport_counter()
-    num_steps = transport_counter % get_num_split_steps_per_substep() - 1
+    transport_counter => transport_controller%get_transport_counter()
+    num_steps = transport_counter%get_num_split_steps_per_substep() - 1
     do step = 1, num_steps
-      flux_ptr => transport_counter % get_flux( step )
+      flux_ptr => transport_counter%get_flux( step )
 
       flux_inner_prod = 0.0_r_def
-      if ( flux_ptr % is_initialised() ) then
+      if ( flux_ptr%is_initialised() ) then
         call invoke( x_innerproduct_y( flux_inner_prod, &
                                        flux_ptr,        &
                                        counter_flux_inp(step) ) )
@@ -428,10 +428,10 @@ module inner_from_controller_rdef_alg_mod
     real(kind=r_def),                    parameter :: eps = 1.0e-30_r_def
     real(kind=r_def)                               :: field_n_inner_prod
 
-    transport_counter => transport_controller % get_transport_counter()
-    field_n_ptr => transport_counter % get_field_n()
+    transport_counter => transport_controller%get_transport_counter()
+    field_n_ptr => transport_counter%get_field_n()
 
-    if ( field_n_ptr % is_initialised() ) then
+    if ( field_n_ptr%is_initialised() ) then
       field_n_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_x( field_n_inner_prod, field_n_ptr ) )
       field_n_sf = 1.0_r_def/(field_n_inner_prod + eps)
@@ -464,10 +464,10 @@ module inner_from_controller_rdef_alg_mod
     type(r_tran_field_type),               pointer :: field_n_ptr
     real(kind=r_def)                               :: field_n_inner_prod
 
-    transport_counter => transport_controller % get_transport_counter()
-    field_n_ptr => transport_counter % get_field_n()
+    transport_counter => transport_controller%get_transport_counter()
+    field_n_ptr => transport_counter%get_field_n()
 
-    if ( field_n_ptr % is_initialised() ) then
+    if ( field_n_ptr%is_initialised() ) then
       field_n_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_y( field_n_inner_prod, &
                                      field_n_ptr,        &
@@ -502,10 +502,10 @@ module inner_from_controller_rdef_alg_mod
     real(kind=r_def),                    parameter :: eps = 1.0e-30_r_def
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_pc => transport_controller % get_wind_precomputations()
-    wind_ptr => wind_pc % get_wind_npdt( mesh_id, delta_t )
+    wind_pc => transport_controller%get_wind_precomputations()
+    wind_ptr => wind_pc%get_wind_npdt( mesh_id, delta_t )
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_x( wind_inner_prod, wind_ptr ) )
       wind_sf = 1.0_r_def/(wind_inner_prod + eps)
@@ -544,10 +544,10 @@ module inner_from_controller_rdef_alg_mod
     type(r_tran_field_type),               pointer :: wind_ptr
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_pc => transport_controller % get_wind_precomputations()
-    wind_ptr => wind_pc % get_wind_npdt( mesh_id, delta_t )
+    wind_pc => transport_controller%get_wind_precomputations()
+    wind_ptr => wind_pc%get_wind_npdt( mesh_id, delta_t )
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_y( wind_inner_prod, &
                                      wind_ptr,        &
@@ -582,10 +582,10 @@ module inner_from_controller_rdef_alg_mod
     real(kind=r_def),                    parameter :: eps = 1.0e-30_r_def
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_pc => transport_controller % get_wind_precomputations()
-    wind_ptr => wind_pc % get_wind( mesh_id, direction )
+    wind_pc => transport_controller%get_wind_precomputations()
+    wind_ptr => wind_pc%get_wind( mesh_id, direction )
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_x( wind_inner_prod, wind_ptr ) )
       wind_sf = 1.0_r_def/(wind_inner_prod + eps)
@@ -624,10 +624,10 @@ module inner_from_controller_rdef_alg_mod
     type(r_tran_field_type),               pointer :: wind_ptr
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_pc => transport_controller % get_wind_precomputations()
-    wind_ptr => wind_pc % get_wind( mesh_id, direction )
+    wind_pc => transport_controller%get_wind_precomputations()
+    wind_ptr => wind_pc%get_wind( mesh_id, direction )
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_y( wind_inner_prod, &
                                      wind_ptr,        &
@@ -655,9 +655,9 @@ module inner_from_controller_rdef_alg_mod
     real(kind=r_def),                    parameter :: eps = 1.0e-30_r_def
     real(kind=r_def)                               :: ref_field_inner_prod
 
-    ref_field_ptr => transport_controller % get_ref_field()
+    ref_field_ptr => transport_controller%get_ref_field()
 
-    if ( ref_field_ptr % is_initialised() ) then
+    if ( ref_field_ptr%is_initialised() ) then
       ref_field_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_x( ref_field_inner_prod, ref_field_ptr ) )
       ref_field_sf = 1.0_r_def/(ref_field_inner_prod + eps)
@@ -689,9 +689,9 @@ module inner_from_controller_rdef_alg_mod
     type(r_tran_field_type),               pointer :: ref_field_ptr
     real(kind=r_def)                               :: ref_field_inner_prod
 
-    ref_field_ptr => transport_controller % get_ref_field()
+    ref_field_ptr => transport_controller%get_ref_field()
 
-    if ( ref_field_ptr % is_initialised() ) then
+    if ( ref_field_ptr%is_initialised() ) then
       ref_field_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_y( ref_field_inner_prod, &
                                      ref_field_ptr,        &
@@ -722,9 +722,9 @@ module inner_from_controller_rdef_alg_mod
     real(kind=r_def),                    parameter :: eps = 1.0e-30_r_def
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_ptr => transport_controller % get_wind_npdt( delta_t )
+    wind_ptr => transport_controller%get_wind_npdt( delta_t )
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_x( wind_inner_prod, wind_ptr ) )
       wind_sf = 1.0_r_def/(wind_inner_prod + eps)
@@ -759,9 +759,9 @@ module inner_from_controller_rdef_alg_mod
     type(r_tran_field_type),               pointer :: wind_ptr
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_ptr => transport_controller % get_wind_npdt( delta_t )
+    wind_ptr => transport_controller%get_wind_npdt( delta_t )
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_y( wind_inner_prod, &
                                      wind_ptr,        &
@@ -789,9 +789,9 @@ module inner_from_controller_rdef_alg_mod
     real(kind=r_def),                    parameter :: eps = 1.0e-30_r_def
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_ptr => transport_controller % get_transporting_wind()
+    wind_ptr => transport_controller%get_transporting_wind()
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_x( wind_inner_prod, wind_ptr ) )
       wind_sf = 1.0_r_def/(wind_inner_prod + eps)
@@ -823,9 +823,9 @@ module inner_from_controller_rdef_alg_mod
     type(r_tran_field_type),               pointer :: wind_ptr
     real(kind=r_def)                               :: wind_inner_prod
 
-    wind_ptr => transport_controller % get_transporting_wind()
+    wind_ptr => transport_controller%get_transporting_wind()
 
-    if ( wind_ptr % is_initialised() ) then
+    if ( wind_ptr%is_initialised() ) then
       wind_inner_prod = 0.0_r_def
       call invoke( x_innerproduct_y( wind_inner_prod, &
                                      wind_ptr,        &

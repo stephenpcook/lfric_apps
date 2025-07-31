@@ -101,20 +101,20 @@ module atlt_end_transport_step_alg_mod
     real(kind=r_tran) :: relative_diff
 
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, dummy, dummy_vs )
-    pert_transport_controller => tl_transport_controller % get_pert_wind_ls_rho_controller()
-    transport_metadata => pert_transport_controller % get_transport_metadata()
-    transport_counter => pert_transport_controller % get_transport_counter()
+    pert_transport_controller => tl_transport_controller%get_pert_wind_ls_rho_controller()
+    transport_metadata => pert_transport_controller%get_transport_metadata()
+    transport_counter => pert_transport_controller%get_transport_counter()
 
     ! Initialising fields
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, W3                             &
+    vector_space_w3_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, W3                           &
     )
 
-    call field_np1 % initialise( vector_space = vector_space_w3_ptr )
-    call field_in % initialise( vector_space = vector_space_w3_ptr )
+    call field_np1%initialise( vector_space = vector_space_w3_ptr )
+    call field_in%initialise( vector_space = vector_space_w3_ptr )
 
-    call field_np1_input % initialise( vector_space = vector_space_w3_ptr )
-    call field_in_input % initialise( vector_space = vector_space_w3_ptr )
+    call field_np1_input%initialise( vector_space = vector_space_w3_ptr )
+    call field_in_input%initialise( vector_space = vector_space_w3_ptr )
 
     field_np1_inner_prod = 0.0_r_def
     field_in_inner_prod = 0.0_r_def
@@ -168,7 +168,7 @@ module atlt_end_transport_step_alg_mod
     inner2 = inner2 + real( fnp1_fnp1_input_inner_prod, r_tran )
     inner2 = inner2 + real( fi_fi_input_inner_prod, r_tran )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
 
     ! Test the inner-product values for equality, allowing for the precision of the active variables
     machine_tol = spacing( max( abs( inner1 ), abs( inner2 ) ) )
@@ -259,12 +259,12 @@ module atlt_end_transport_step_alg_mod
     real(kind=r_tran) :: relative_diff
 
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, tctr_field_n, tctr_field_n_vs )
-    ls_transport_controller => tl_transport_controller % get_ls_wind_pert_rho_controller()
-    pert_transport_controller => tl_transport_controller % get_pert_wind_ls_rho_controller()
-    transport_metadata => pert_transport_controller % get_transport_metadata()
-    transport_counter => pert_transport_controller % get_transport_counter()
-    flux_precomp_ls_wind => ls_transport_controller % get_flux_precomputations()
-    flux_precomp_pert_wind => pert_transport_controller % get_flux_precomputations()
+    ls_transport_controller => tl_transport_controller%get_ls_wind_pert_rho_controller()
+    pert_transport_controller => tl_transport_controller%get_pert_wind_ls_rho_controller()
+    transport_metadata => pert_transport_controller%get_transport_metadata()
+    transport_counter => pert_transport_controller%get_transport_counter()
+    flux_precomp_ls_wind => ls_transport_controller%get_flux_precomputations()
+    flux_precomp_pert_wind => pert_transport_controller%get_flux_precomputations()
 
     ! Initialising fields
     call init_counter_fieldvals( mesh,                     &
@@ -284,22 +284,22 @@ module atlt_end_transport_step_alg_mod
                                  dummy_ref_mass_2_inp,       &
                                  pert_transport_controller )
 
-    vector_space_w2_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, W2                             &
+    vector_space_w2_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, W2                           &
     )
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, W3                             &
+    vector_space_w3_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, W3                           &
     )
 
-    call field_np1 % initialise( vector_space = vector_space_w3_ptr )
-    call field_in % initialise( vector_space = vector_space_w3_ptr )
-    call flux_ls_wind % initialise( vector_space = vector_space_w2_ptr )
-    call flux_pert_wind % initialise( vector_space = vector_space_w2_ptr )
+    call field_np1%initialise( vector_space = vector_space_w3_ptr )
+    call field_in%initialise( vector_space = vector_space_w3_ptr )
+    call flux_ls_wind%initialise( vector_space = vector_space_w2_ptr )
+    call flux_pert_wind%initialise( vector_space = vector_space_w2_ptr )
 
-    call field_np1 % copy_field_properties( field_np1_input )
-    call field_in % copy_field_properties( field_in_input )
-    call flux_ls_wind % copy_field_properties( flux_ls_wind_input )
-    call flux_pert_wind % copy_field_properties( flux_pert_wind_input )
+    call field_np1%copy_field_properties( field_np1_input )
+    call field_in%copy_field_properties( field_in_input )
+    call flux_ls_wind%copy_field_properties( flux_ls_wind_input )
+    call flux_pert_wind%copy_field_properties( flux_pert_wind_input )
 
     field_np1_inner_prod = 0.0_r_def
     field_in_inner_prod = 0.0_r_def
@@ -400,7 +400,7 @@ module atlt_end_transport_step_alg_mod
     call counter_flux_inp_prod_rtran( inner2, pert_transport_controller, tctr_flux_inp )
     call counter_field_n_inp_prod_rtran( inner2, pert_transport_controller, tctr_field_n_inp )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
     if ( allocated(tctr_flux_inp) )              deallocate( tctr_flux_inp )
     if ( allocated(fpc_ls_wind_ref_flux_inp) )   deallocate( fpc_ls_wind_ref_flux_inp )
     if ( allocated(fpc_pert_wind_ref_flux_inp) ) deallocate( fpc_pert_wind_ref_flux_inp )

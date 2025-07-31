@@ -85,21 +85,21 @@ module adjt_w3h_adv_upd_lookup_alg_mod
     nullify(m3_inv, lookup_w3h_adv_upd_field, set_count_w3h_adv_upd_field, &
             vector_space_w3_md_ptr, vector_space_w3_ptr, vector_space_w2_ptr)
 
-    vector_space_w3_md_ptr => function_space_collection % get_fs(              &
+    vector_space_w3_md_ptr => function_space_collection%get_fs(                &
         mesh, element_order_h, element_order_v, W3, ndata, ndata_first=.false. &
     )
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
+    vector_space_w3_ptr => function_space_collection%get_fs(                   &
         mesh, element_order_h, element_order_v, W3                             &
     )
-    vector_space_w2_ptr => function_space_collection % get_fs(                 &
+    vector_space_w2_ptr => function_space_collection%get_fs(                   &
         mesh, element_order_h, element_order_v, W2                             &
     )
-    call advective_increment % initialise( vector_space=vector_space_w3_ptr, name='advective_increment' )
-    call tracer % initialise( vector_space=vector_space_w3_md_ptr, name='tracer ')
-    call wind % initialise( vector_space=vector_space_w2_ptr, name='wind' )
-    call advective_increment_input % initialise( vector_space=vector_space_w3_ptr, name='advective_increment_input' )
-    call tracer_input % initialise( vector_space=vector_space_w3_md_ptr, name='tracer_input' )
-    m3_inv => get_inverse_mass_matrix_fe( W3, mesh % get_id() )
+    call advective_increment%initialise( vector_space=vector_space_w3_ptr, name='advective_increment' )
+    call tracer%initialise( vector_space=vector_space_w3_md_ptr, name='tracer ')
+    call wind%initialise( vector_space=vector_space_w2_ptr, name='wind' )
+    call advective_increment_input%initialise( vector_space=vector_space_w3_ptr, name='advective_increment_input' )
+    call tracer_input%initialise( vector_space=vector_space_w3_md_ptr, name='tracer_input' )
+    m3_inv => get_inverse_mass_matrix_fe( W3, mesh%get_id() )
     advective_increment_inner_prod = 0.0_r_def
     tracer_inner_prod = 0.0_r_def
 
@@ -136,10 +136,10 @@ module adjt_w3h_adv_upd_lookup_alg_mod
 
     call create_lookup_w3h_adv_upd( lookup_w3h_adv_upd, advective_increment, tracer, wind, &
                                     m3_inv, stencil_extent )
-    lookup_w3h_adv_upd_field => lookup_w3h_adv_upd % get_lookup_field()
-    set_count_w3h_adv_upd_field => lookup_w3h_adv_upd % get_set_count_field()
-    nsets = lookup_w3h_adv_upd % get_nsets_max()
-    nindices = lookup_w3h_adv_upd % get_nindices()
+    lookup_w3h_adv_upd_field => lookup_w3h_adv_upd%get_lookup_field()
+    set_count_w3h_adv_upd_field => lookup_w3h_adv_upd%get_set_count_field()
+    nsets = lookup_w3h_adv_upd%get_nsets_max()
+    nindices = lookup_w3h_adv_upd%get_nindices()
     call invoke_adj_w3h_adv_upd_lookup_kernel_type( advective_increment,      &
                                                     tracer,                   &
                                                     lookup_w3h_adv_upd_field, &

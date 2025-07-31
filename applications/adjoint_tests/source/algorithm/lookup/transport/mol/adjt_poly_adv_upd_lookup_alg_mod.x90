@@ -87,18 +87,18 @@ module adjt_poly_adv_upd_lookup_alg_mod
              lookup_poly_adv_upd_field, &
              num_sets_poly_adv_upd_field )
 
-    vector_space_w2h_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                               element_order_v, w2h)
-    vector_space_wt_md_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                                 element_order_v, wtheta, ndata)
-    vector_space_wtheta_ptr => function_space_collection % get_fs(mesh, element_order_h, element_order_v, wtheta)
-    call advective % initialise(vector_space=vector_space_wtheta_ptr, name='advective')
-    call reconstruction % initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction', halo_depth=stencil_extent)
-    call reconstruction % copy_field_properties( dummy_md )
-    call wind % initialise(vector_space=vector_space_w2h_ptr, name='wind', halo_depth=stencil_extent)
-    call wind % copy_field_properties( wind_dir )
-    call advective_input % initialise(vector_space=vector_space_wtheta_ptr, name='advective_input')
-    call reconstruction_input % initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction_input')
+    vector_space_w2h_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                             element_order_v, w2h)
+    vector_space_wt_md_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                               element_order_v, wtheta, ndata)
+    vector_space_wtheta_ptr => function_space_collection%get_fs(mesh, element_order_h, element_order_v, wtheta)
+    call advective%initialise(vector_space=vector_space_wtheta_ptr, name='advective')
+    call reconstruction%initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction', halo_depth=stencil_extent)
+    call reconstruction%copy_field_properties( dummy_md )
+    call wind%initialise(vector_space=vector_space_w2h_ptr, name='wind', halo_depth=stencil_extent)
+    call wind%copy_field_properties( wind_dir )
+    call advective_input%initialise(vector_space=vector_space_wtheta_ptr, name='advective_input')
+    call reconstruction_input%initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction_input')
 
     advective_inner_prod = 0.0_r_def
     reconstruction_inner_prod = 0.0_r_def
@@ -131,10 +131,10 @@ module adjt_poly_adv_upd_lookup_alg_mod
 
     call create_lookup_poly_adv_upd( lookup_poly_adv_upd, advective, reconstruction, &
                                      wind, stencil_extent )
-    lookup_poly_adv_upd_field => lookup_poly_adv_upd % get_lookup_field()
-    num_sets_poly_adv_upd_field => lookup_poly_adv_upd % get_set_count_field()
-    nindices = lookup_poly_adv_upd % get_nindices()
-    nsets = lookup_poly_adv_upd % get_nsets_max()
+    lookup_poly_adv_upd_field => lookup_poly_adv_upd%get_lookup_field()
+    num_sets_poly_adv_upd_field => lookup_poly_adv_upd%get_set_count_field()
+    nindices = lookup_poly_adv_upd%get_nindices()
+    nsets = lookup_poly_adv_upd%get_nsets_max()
 
     call invoke_adj_poly_adv_upd_lookup(advective, reconstruction, &
                                         lookup_poly_adv_upd_field, num_sets_poly_adv_upd_field, &

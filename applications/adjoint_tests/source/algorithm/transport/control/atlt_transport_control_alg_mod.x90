@@ -62,20 +62,20 @@ module atlt_transport_control_alg_mod
     integer(kind=i_def)         :: imr
 
     ! Initialising fields
-    vector_space_wtheta_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, Wtheta )
-    vector_space_w2_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, W2 )
-    vector_space_w3_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, W3 )
+    vector_space_wtheta_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, Wtheta )
+    vector_space_w2_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, W2 )
+    vector_space_w3_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, W3 )
 
-    call ls_advected_fields(igh_u) % initialise( vector_space = vector_space_w2_ptr )
-    call ls_advected_fields(igh_t) % initialise( vector_space = vector_space_wtheta_ptr )
-    call ls_advected_fields(igh_d) % initialise( vector_space = vector_space_w3_ptr )
-    call ls_advected_fields(igh_p) % initialise( vector_space = vector_space_w3_ptr )
+    call ls_advected_fields(igh_u)%initialise( vector_space = vector_space_w2_ptr )
+    call ls_advected_fields(igh_t)%initialise( vector_space = vector_space_wtheta_ptr )
+    call ls_advected_fields(igh_d)%initialise( vector_space = vector_space_w3_ptr )
+    call ls_advected_fields(igh_p)%initialise( vector_space = vector_space_w3_ptr )
 
-    call ls_wind_np1 % initialise( vector_space = vector_space_w2_ptr )
-    call ls_wind_n   % initialise( vector_space = vector_space_w2_ptr )
+    call ls_wind_np1%initialise( vector_space = vector_space_w2_ptr )
+    call ls_wind_n%initialise( vector_space = vector_space_w2_ptr )
 
     do imr = 1, nummr
-      call ls_mr_in(imr) % initialise( vector_space = vector_space_wtheta_ptr )
+      call ls_mr_in(imr)%initialise( vector_space = vector_space_wtheta_ptr )
     end do
 
     ! Init LS; some fields are inflated to avoid numerical issues
@@ -193,36 +193,36 @@ module atlt_transport_control_alg_mod
     real(kind=r_def)            :: machine_tol
     real(kind=r_def)            :: relative_diff
 
-    call advection_inc(igh_u) % initialise( vector_space = vector_space_w2_ptr )
-    call advection_inc(igh_t) % initialise( vector_space = vector_space_wtheta_ptr )
-    call advection_inc(igh_d) % initialise( vector_space = vector_space_w3_ptr )
-    call advection_inc(igh_p) % initialise( vector_space = vector_space_w3_ptr )
+    call advection_inc(igh_u)%initialise( vector_space = vector_space_w2_ptr )
+    call advection_inc(igh_t)%initialise( vector_space = vector_space_wtheta_ptr )
+    call advection_inc(igh_d)%initialise( vector_space = vector_space_w3_ptr )
+    call advection_inc(igh_p)%initialise( vector_space = vector_space_w3_ptr )
 
-    call advection_inc(igh_u) % copy_field_properties( adv_inc_inp(igh_u) )
-    call advection_inc(igh_t) % copy_field_properties( adv_inc_inp(igh_t) )
-    call advection_inc(igh_d) % copy_field_properties( adv_inc_inp(igh_d) )
-    call advection_inc(igh_p) % copy_field_properties( adv_inc_inp(igh_p) )
+    call advection_inc(igh_u)%copy_field_properties( adv_inc_inp(igh_u) )
+    call advection_inc(igh_t)%copy_field_properties( adv_inc_inp(igh_t) )
+    call advection_inc(igh_d)%copy_field_properties( adv_inc_inp(igh_d) )
+    call advection_inc(igh_p)%copy_field_properties( adv_inc_inp(igh_p) )
 
-    call advected_fields(igh_u) % initialise( vector_space = vector_space_w2_ptr )
-    call advected_fields(igh_t) % initialise( vector_space = vector_space_wtheta_ptr )
-    call advected_fields(igh_d) % initialise( vector_space = vector_space_w3_ptr )
-    call advected_fields(igh_p) % initialise( vector_space = vector_space_w3_ptr )
+    call advected_fields(igh_u)%initialise( vector_space = vector_space_w2_ptr )
+    call advected_fields(igh_t)%initialise( vector_space = vector_space_wtheta_ptr )
+    call advected_fields(igh_d)%initialise( vector_space = vector_space_w3_ptr )
+    call advected_fields(igh_p)%initialise( vector_space = vector_space_w3_ptr )
 
-    call advected_fields(igh_u) % copy_field_properties( adv_flds_inp(igh_u) )
-    call advected_fields(igh_t) % copy_field_properties( adv_flds_inp(igh_t) )
-    call advected_fields(igh_d) % copy_field_properties( adv_flds_inp(igh_d) )
-    call advected_fields(igh_p) % copy_field_properties( adv_flds_inp(igh_p) )
+    call advected_fields(igh_u)%copy_field_properties( adv_flds_inp(igh_u) )
+    call advected_fields(igh_t)%copy_field_properties( adv_flds_inp(igh_t) )
+    call advected_fields(igh_d)%copy_field_properties( adv_flds_inp(igh_d) )
+    call advected_fields(igh_p)%copy_field_properties( adv_flds_inp(igh_p) )
 
-    call wind_np1 % initialise( vector_space = vector_space_w2_ptr )
-    call wind_np1 % copy_field_properties( wnp1_inp )
-    call wind_n   % initialise( vector_space = vector_space_w2_ptr )
-    call wind_n   % copy_field_properties( wn_inp )
+    call wind_np1%initialise( vector_space = vector_space_w2_ptr )
+    call wind_np1%copy_field_properties( wnp1_inp )
+    call wind_n%initialise( vector_space = vector_space_w2_ptr )
+    call wind_n%copy_field_properties( wn_inp )
 
     do imr = 1, nummr
-      call mr_out(imr)   % initialise( vector_space = vector_space_wtheta_ptr )
-      call mr_in(imr)    % initialise( vector_space = vector_space_wtheta_ptr )
-      call mr_out(imr)   % copy_field_properties( mr_out_inp(imr) )
-      call mr_in(imr)    % copy_field_properties( mr_in_inp(imr) )
+      call mr_out(imr)%initialise( vector_space = vector_space_wtheta_ptr )
+      call mr_in(imr)%initialise( vector_space = vector_space_wtheta_ptr )
+      call mr_out(imr)%copy_field_properties( mr_out_inp(imr) )
+      call mr_in(imr)%copy_field_properties( mr_in_inp(imr) )
     end do
 
     ! Init values

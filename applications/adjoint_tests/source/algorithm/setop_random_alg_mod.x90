@@ -38,10 +38,10 @@ module setop_random_alg_mod
     type(field_type)                   :: field_to
     type(field_type)                   :: field_from
 
-    field_to_fs => operator % get_fs_to()
-    field_from_fs => operator % get_fs_from()
-    call field_to % initialise( vector_space = field_to_fs )
-    call field_from % initialise( vector_space = field_from_fs )
+    field_to_fs => operator%get_fs_to()
+    field_from_fs => operator%get_fs_from()
+    call field_to%initialise( vector_space = field_to_fs )
+    call field_from%initialise( vector_space = field_from_fs )
 
     call invoke( setval_random( field_to ),                      &
                  setval_random( field_from ),                    &

@@ -68,24 +68,24 @@ module atlt_poly_adv_update_alg_mod
     real(kind=r_tran)            :: machine_tol
     real(kind=r_tran)            :: relative_diff
 
-    vector_space_w2h_ptr => function_space_collection % get_fs(                &
-        mesh, element_order_h, element_order_v, W2H                            &
+    vector_space_w2h_ptr => function_space_collection%get_fs(                &
+        mesh, element_order_h, element_order_v, W2H                          &
     )
-    vector_space_wt_md_ptr => function_space_collection % get_fs(              &
-        mesh, element_order_h, element_order_v, Wtheta, ndata                  &
+    vector_space_wt_md_ptr => function_space_collection%get_fs(              &
+        mesh, element_order_h, element_order_v, Wtheta, ndata                &
     )
-    vector_space_wtheta_ptr => function_space_collection % get_fs(             &
-        mesh, element_order_h, element_order_v, Wtheta                         &
+    vector_space_wtheta_ptr => function_space_collection%get_fs(             &
+        mesh, element_order_h, element_order_v, Wtheta                       &
     )
     ! Stencil fields need bigger halos due to atl_poly being a stencil operation with GH_INC.
-    call advective % initialise( vector_space=vector_space_wtheta_ptr, name='advective' )
-    call wind % initialise( vector_space=vector_space_w2h_ptr, name='wind' )
-    call ls_reconstruction % initialise( vector_space=vector_space_wt_md_ptr, name='ls_reconstruction', &
+    call advective%initialise( vector_space=vector_space_wtheta_ptr, name='advective' )
+    call wind%initialise( vector_space=vector_space_w2h_ptr, name='wind' )
+    call ls_reconstruction%initialise( vector_space=vector_space_wt_md_ptr, name='ls_reconstruction', &
                                          halo_depth=stencil_extent + 1_i_def )
-    call wind_dir % initialise( vector_space=vector_space_w2h_ptr, name='wind_dir', &
+    call wind_dir%initialise( vector_space=vector_space_w2h_ptr, name='wind_dir', &
                                 halo_depth=stencil_extent + 1_i_def )
-    call advective_input % initialise( vector_space=vector_space_wtheta_ptr, name='advective_input' )
-    call wind_input % initialise( vector_space=vector_space_w2h_ptr, name='wind_input' )
+    call advective_input%initialise( vector_space=vector_space_wtheta_ptr, name='advective_input' )
+    call wind_input%initialise( vector_space=vector_space_w2h_ptr, name='wind_input' )
 
     advective_inner_prod = 0.0_r_def
     wind_inner_prod = 0.0_r_def

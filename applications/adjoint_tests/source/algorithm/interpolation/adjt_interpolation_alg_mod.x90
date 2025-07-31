@@ -81,20 +81,20 @@ module adjt_interpolation_alg_mod
     real(kind=r_def),        parameter :: overall_tolerance = 1500.0_r_def
     real(kind=r_def),        parameter :: eps = 1e-30_r_def
 
-    vector_space_w2_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                              element_order_v, w2)
-    vector_space_w3_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                              element_order_v, w3)
-    vector_space_wtheta_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                                  element_order_v, wtheta)
-    call u_in_w2 % initialise(vector_space=vector_space_w2_ptr, name='u_in_w2')
-    call u_in_w3 % initialise(vector_space=vector_space_w3_ptr, name='u_in_w3')
-    call v_in_w3 % initialise(vector_space=vector_space_w3_ptr, name='v_in_w3')
-    call w_in_wth % initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth')
-    call u_in_w2_inp % initialise(vector_space=vector_space_w2_ptr, name='u_in_w2_inp')
-    call u_in_w3_inp % initialise(vector_space=vector_space_w3_ptr, name='u_in_w3_inp')
-    call v_in_w3_inp % initialise(vector_space=vector_space_w3_ptr, name='v_in_w3_inp')
-    call w_in_wth_inp % initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth_inp')
+    vector_space_w2_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                            element_order_v, w2)
+    vector_space_w3_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                            element_order_v, w3)
+    vector_space_wtheta_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                                element_order_v, wtheta)
+    call u_in_w2%initialise(vector_space=vector_space_w2_ptr, name='u_in_w2')
+    call u_in_w3%initialise(vector_space=vector_space_w3_ptr, name='u_in_w3')
+    call v_in_w3%initialise(vector_space=vector_space_w3_ptr, name='v_in_w3')
+    call w_in_wth%initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth')
+    call u_in_w2_inp%initialise(vector_space=vector_space_w2_ptr, name='u_in_w2_inp')
+    call u_in_w3_inp%initialise(vector_space=vector_space_w3_ptr, name='u_in_w3_inp')
+    call v_in_w3_inp%initialise(vector_space=vector_space_w3_ptr, name='v_in_w3_inp')
+    call w_in_wth_inp%initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth_inp')
 
     u2_inner_prod = 0.0_r_def
     u3_inner_prod = 0.0_r_def
@@ -227,20 +227,20 @@ module adjt_interpolation_alg_mod
     real(kind=r_def),        parameter :: overall_tolerance = 1500.0_r_def
     real(kind=r_def),        parameter :: eps = 1e-30_r_def
 
-    vector_space_w2_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                              element_order_v, w2)
-    vector_space_w3_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                              element_order_v, w3)
-    vector_space_wtheta_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                                  element_order_v, wtheta)
-    call u_in_w2 % initialise(vector_space=vector_space_w2_ptr, name='u_in_w2')
-    call u_in_w3 % initialise(vector_space=vector_space_w3_ptr, name='u_in_w3')
-    call v_in_w3 % initialise(vector_space=vector_space_w3_ptr, name='v_in_w3')
-    call w_in_wth % initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth')
-    call u_in_w2_inp % initialise(vector_space=vector_space_w2_ptr, name='u_in_w2_inp')
-    call u_in_w3_inp % initialise(vector_space=vector_space_w3_ptr, name='u_in_w3_inp')
-    call v_in_w3_inp % initialise(vector_space=vector_space_w3_ptr, name='v_in_w3_inp')
-    call w_in_wth_inp % initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth_inp')
+    vector_space_w2_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                            element_order_v, w2)
+    vector_space_w3_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                            element_order_v, w3)
+    vector_space_wtheta_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                                element_order_v, wtheta)
+    call u_in_w2%initialise(vector_space=vector_space_w2_ptr, name='u_in_w2')
+    call u_in_w3%initialise(vector_space=vector_space_w3_ptr, name='u_in_w3')
+    call v_in_w3%initialise(vector_space=vector_space_w3_ptr, name='v_in_w3')
+    call w_in_wth%initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth')
+    call u_in_w2_inp%initialise(vector_space=vector_space_w2_ptr, name='u_in_w2_inp')
+    call u_in_w3_inp%initialise(vector_space=vector_space_w3_ptr, name='u_in_w3_inp')
+    call v_in_w3_inp%initialise(vector_space=vector_space_w3_ptr, name='v_in_w3_inp')
+    call w_in_wth_inp%initialise(vector_space=vector_space_wtheta_ptr, name='w_in_wth_inp')
 
     u2_inner_prod = 0.0_r_def
     u3_inner_prod = 0.0_r_def

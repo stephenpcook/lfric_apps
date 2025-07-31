@@ -81,17 +81,17 @@ module adjt_wt_advective_update_alg_mod
 
     transport_metadata => transport_metadata_collection%get_transport_metadata('density')
 
-    vector_space_w2h_ptr => function_space_collection % get_fs(                &
-        mesh, element_order_h, element_order_v, w2h                            &
+    vector_space_w2h_ptr => function_space_collection%get_fs(                &
+        mesh, element_order_h, element_order_v, w2h                          &
     )
-    vector_space_wtheta_ptr => function_space_collection % get_fs(             &
-        mesh, element_order_h, element_order_v, wtheta                         &
+    vector_space_wtheta_ptr => function_space_collection%get_fs(             &
+        mesh, element_order_h, element_order_v, wtheta                       &
     )
-    call u_grad_f % initialise(vector_space=vector_space_wtheta_ptr, name='u_grad_f')
-    call field % initialise(vector_space=vector_space_wtheta_ptr, name='field')
-    call ls_wind % initialise(vector_space=vector_space_w2h_ptr, name='ls_wind')
-    call advective_input % initialise(vector_space=vector_space_wtheta_ptr, name='advective_input')
-    call field_input % initialise(vector_space=vector_space_wtheta_ptr, name='field_input')
+    call u_grad_f%initialise(vector_space=vector_space_wtheta_ptr, name='u_grad_f')
+    call field%initialise(vector_space=vector_space_wtheta_ptr, name='field')
+    call ls_wind%initialise(vector_space=vector_space_w2h_ptr, name='ls_wind')
+    call advective_input%initialise(vector_space=vector_space_wtheta_ptr, name='advective_input')
+    call field_input%initialise(vector_space=vector_space_wtheta_ptr, name='field_input')
 
     advective_inner_prod = 0.0_r_def
     field_inner_prod = 0.0_r_def

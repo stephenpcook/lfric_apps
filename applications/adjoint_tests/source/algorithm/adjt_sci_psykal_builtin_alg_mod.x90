@@ -66,19 +66,19 @@ module adjt_sci_psykal_builtin_alg_mod
     real(kind=r_def),        parameter :: overall_tolerance = 1500.0_r_def
     real(kind=r_def),        parameter :: eps = 1e-30_r_def
 
-    vector_space_w3_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                              element_order_v, w3)
-    vector_space_wtheta_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                                  element_order_v, wtheta)
-    call field(1) % initialise(vector_space=vector_space_w3_ptr)
-    call field(2) % initialise(vector_space=vector_space_w3_ptr)
-    call field(3) % initialise(vector_space=vector_space_wtheta_ptr)
-    call coords(1) % initialise(vector_space=vector_space_w3_ptr)
-    call coords(2) % initialise(vector_space=vector_space_w3_ptr)
-    call coords(3) % initialise(vector_space=vector_space_w3_ptr)
-    call field_inp(1) % initialise(vector_space=vector_space_w3_ptr)
-    call field_inp(2) % initialise(vector_space=vector_space_w3_ptr)
-    call field_inp(3) % initialise(vector_space=vector_space_wtheta_ptr)
+    vector_space_w3_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                            element_order_v, w3)
+    vector_space_wtheta_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                                element_order_v, wtheta)
+    call field(1)%initialise(vector_space=vector_space_w3_ptr)
+    call field(2)%initialise(vector_space=vector_space_w3_ptr)
+    call field(3)%initialise(vector_space=vector_space_wtheta_ptr)
+    call coords(1)%initialise(vector_space=vector_space_w3_ptr)
+    call coords(2)%initialise(vector_space=vector_space_w3_ptr)
+    call coords(3)%initialise(vector_space=vector_space_w3_ptr)
+    call field_inp(1)%initialise(vector_space=vector_space_w3_ptr)
+    call field_inp(2)%initialise(vector_space=vector_space_w3_ptr)
+    call field_inp(3)%initialise(vector_space=vector_space_wtheta_ptr)
 
     field_inner_prod(:) = 0.0_r_def
 

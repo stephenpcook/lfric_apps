@@ -116,10 +116,10 @@ module atlt_mol_conservative_alg_mod
     real(kind=r_def)               :: machine_tol
     real(kind=r_def)               :: relative_diff
 
-    mesh_id = mesh % get_id()
+    mesh_id = mesh%get_id()
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, tctr_field_n, tctr_field_n_vs )
-    ls_transport_controller => tl_transport_controller % get_ls_wind_pert_rho_controller()
-    pert_transport_controller => tl_transport_controller % get_pert_wind_ls_rho_controller()
+    ls_transport_controller => tl_transport_controller%get_ls_wind_pert_rho_controller()
+    pert_transport_controller => tl_transport_controller%get_pert_wind_ls_rho_controller()
 
     ! Initialising fields
     call init_counter_fieldvals( mesh,                     &
@@ -151,17 +151,17 @@ module atlt_mol_conservative_alg_mod
                                  direction_3d,             &
                                  pert_transport_controller )
 
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, W3                             &
+    vector_space_w3_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, W3                           &
     )
 
-    call field_np1 % initialise( vector_space = vector_space_w3_ptr )
-    call field % initialise( vector_space = vector_space_w3_ptr )
+    call field_np1%initialise( vector_space = vector_space_w3_ptr )
+    call field%initialise( vector_space = vector_space_w3_ptr )
 
-    call ls_field % initialise( vector_space = vector_space_w3_ptr )
+    call ls_field%initialise( vector_space = vector_space_w3_ptr )
 
-    call field_np1 % copy_field_properties( field_np1_input )
-    call field % copy_field_properties( field_input )
+    call field_np1%copy_field_properties( field_np1_input )
+    call field%copy_field_properties( field_input )
 
     field_np1_inner_prod = 0.0_r_def
     field_inner_prod = 0.0_r_def
@@ -233,7 +233,7 @@ module atlt_mol_conservative_alg_mod
     call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
     call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
     if ( allocated(tctr_flux_inp) )              deallocate( tctr_flux_inp )
     if ( allocated(fpc_ls_wind_ref_flux_inp) )   deallocate( fpc_ls_wind_ref_flux_inp )
     if ( allocated(fpc_pert_wind_ref_flux_inp) ) deallocate( fpc_pert_wind_ref_flux_inp )

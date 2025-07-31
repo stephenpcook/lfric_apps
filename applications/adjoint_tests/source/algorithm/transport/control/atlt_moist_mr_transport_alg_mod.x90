@@ -112,12 +112,12 @@ module atlt_moist_mr_transport_alg_mod
     real(kind=r_def) :: machine_tol
     real(kind=r_def) :: relative_diff
 
-    mesh_id = mesh % get_id()
+    mesh_id = mesh%get_id()
     nummr_to_transport = 4_i_def
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, dummy, dummy_vs, 'moisture' )
-    ls_transport_controller => tl_transport_controller % get_ls_wind_pert_rho_controller()
-    pert_transport_controller => tl_transport_controller % get_pert_wind_ls_rho_controller()
-    transport_metadata => pert_transport_controller % get_transport_metadata()
+    ls_transport_controller => tl_transport_controller%get_ls_wind_pert_rho_controller()
+    pert_transport_controller => tl_transport_controller%get_pert_wind_ls_rho_controller()
+    transport_metadata => pert_transport_controller%get_transport_metadata()
 
     ! Initialising fields
     call init_flux_pc_fieldvals( mesh,                     &
@@ -145,19 +145,19 @@ module atlt_moist_mr_transport_alg_mod
                                  direction_3d,             &
                                  pert_transport_controller )
 
-    vector_space_wtheta_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, Wtheta )
+    vector_space_wtheta_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, Wtheta )
     allocate( mr_out(nummr) )
     allocate( mr_in(nummr) )
     allocate( ls_mr_in(nummr) )
     allocate( mr_out_inp(nummr) )
     allocate( mr_in_inp(nummr) )
     do imr = 1, nummr
-      call mr_out(imr) % initialise( vector_space = vector_space_wtheta_ptr )
-      call mr_in(imr) % initialise( vector_space = vector_space_wtheta_ptr )
-      call ls_mr_in(imr) % initialise( vector_space = vector_space_wtheta_ptr )
+      call mr_out(imr)%initialise( vector_space = vector_space_wtheta_ptr )
+      call mr_in(imr)%initialise( vector_space = vector_space_wtheta_ptr )
+      call ls_mr_in(imr)%initialise( vector_space = vector_space_wtheta_ptr )
 
-      call mr_out_inp(imr) % initialise( vector_space = vector_space_wtheta_ptr )
-      call mr_in_inp(imr) % initialise( vector_space = vector_space_wtheta_ptr )
+      call mr_out_inp(imr)%initialise( vector_space = vector_space_wtheta_ptr )
+      call mr_in_inp(imr)%initialise( vector_space = vector_space_wtheta_ptr )
 
       call invoke( setval_random( mr_out(imr) ),             &
                    setval_x( mr_out_inp(imr), mr_out(imr) ), &
@@ -225,7 +225,7 @@ module atlt_moist_mr_transport_alg_mod
     call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
     call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
     if ( allocated(fpc_ls_wind_ref_flux_inp) )   deallocate( fpc_ls_wind_ref_flux_inp )
     if ( allocated(fpc_pert_wind_ref_flux_inp) ) deallocate( fpc_pert_wind_ref_flux_inp )
     if ( allocated(dummy_ref_field_1_inp) )      deallocate( dummy_ref_field_1_inp )

@@ -75,21 +75,21 @@ module adjt_sci_convert_hdiv_field_alg_mod
     real(kind=r_def), parameter :: eps = 1e-30_r_def
 
     ! Initialise arguments
-    vector_space_w3_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                              element_order_v, W3)
-    vector_space_w2_ptr => function_space_collection % get_fs(mesh, element_order_h, &
-                                                              element_order_v, W2)
+    vector_space_w3_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                            element_order_v, W3)
+    vector_space_w2_ptr => function_space_collection%get_fs(mesh, element_order_h, &
+                                                            element_order_v, W2)
     do idx = 1, 3
-      call physical_field3(idx) % initialise(vector_space=vector_space_w3_ptr, name='physical_field3')
-      call physical_field3_input(idx) % initialise(vector_space=vector_space_w3_ptr, name='physical_field3_input')
+      call physical_field3(idx)%initialise(vector_space=vector_space_w3_ptr, name='physical_field3')
+      call physical_field3_input(idx)%initialise(vector_space=vector_space_w3_ptr, name='physical_field3_input')
       physical_field3_inner_prod(idx) = 0.0_r_def
       physical_field3_physical_field3_input_inner_prod(idx) = 0.0_r_def
 
       call invoke( setval_random(physical_field3(idx)), &
                    setval_X(physical_field3_input(idx), physical_field3(idx)) )
     end do
-    call computational_field % initialise(vector_space=vector_space_w2_ptr, name='computational_field')
-    call computational_field_input % initialise(vector_space=vector_space_w2_ptr, name='computational_field_input')
+    call computational_field%initialise(vector_space=vector_space_w2_ptr, name='computational_field')
+    call computational_field_input%initialise(vector_space=vector_space_w2_ptr, name='computational_field_input')
     computational_field_inner_prod = 0.0_r_def
     computational_field_computational_field_input_inner_prod = 0.0_r_def
 

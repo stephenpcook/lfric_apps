@@ -82,14 +82,14 @@ module adjt_compute_vorticity_alg_mod
     weak_form_u = .false.
 
     ! Initialising fields
-    vector_space_w1_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, W1 )
-    vector_space_w2_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, W2 )
+    vector_space_w1_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, W1 )
+    vector_space_w2_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, W2 )
 
-    call xi % initialise( vector_space = vector_space_w1_ptr )
-    call u % initialise( vector_space = vector_space_w2_ptr )
+    call xi%initialise( vector_space = vector_space_w1_ptr )
+    call u%initialise( vector_space = vector_space_w2_ptr )
 
-    call xi % copy_field_properties( xi_input )
-    call u % copy_field_properties( u_input )
+    call xi%copy_field_properties( xi_input )
+    call u%copy_field_properties( u_input )
 
     xi_inner_prod = 0.0_r_def
     u_inner_prod = 0.0_r_def

@@ -98,16 +98,16 @@ module adjt_flux_precomputations_alg_mod
     real(kind=r_tran) :: machine_tol
     real(kind=r_tran) :: relative_diff
 
-    mesh_id = mesh % get_id()
+    mesh_id = mesh%get_id()
 
     ! Initialising fields
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, W3                             &
+    vector_space_w3_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, W3                           &
     )
 
-    call ref_field % initialise( vector_space = vector_space_w3_ptr )
+    call ref_field%initialise( vector_space = vector_space_w3_ptr )
 
-    call ref_field % copy_field_properties( ref_field_inp )
+    call ref_field%copy_field_properties( ref_field_inp )
 
     ! Initialise values
     call invoke( setval_random( ref_field ),          &
@@ -119,23 +119,23 @@ module adjt_flux_precomputations_alg_mod
     ! To avoid complexity everywhere else with the inner products, we need the flux precomputations
     ! object to be associated with a transport controller...
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, dummy, dummy_vs )
-    ls_transport_controller => tl_transport_controller % get_ls_wind_pert_rho_controller()
+    ls_transport_controller => tl_transport_controller%get_ls_wind_pert_rho_controller()
 
     ! But this getter actually initialises the flux precomputations using the fields in the test setup function...
-    flux_pc => ls_transport_controller % get_flux_precomputations()
-    splitting = flux_pc % get_splitting()
+    flux_pc => ls_transport_controller%get_flux_precomputations()
+    splitting = flux_pc%get_splitting()
     num_split_steps = get_num_split_steps(splitting)
-    num_steps = flux_pc % get_num_steps()
+    num_steps = flux_pc%get_num_steps()
     num_substeps = num_steps/num_split_steps
 
     ! So we deallocate the arrays...
-    call flux_pc % finalise()
+    call flux_pc%finalise()
 
     ! And use the variables in this scope!
-    call flux_pc % initialise( mesh,         &
-                               splitting,    &
-                               num_substeps, &
-                               ref_field )
+    call flux_pc%initialise( mesh,         &
+                             splitting,    &
+                             num_substeps, &
+                             ref_field )
 
     call init_flux_pc_fieldvals( mesh,                     &
                                  1_i_def,                  &
@@ -177,7 +177,7 @@ module adjt_flux_precomputations_alg_mod
     call flux_pc_ref_field_inp_prod_rtran( inner2, ls_transport_controller, 1_i_def, flux_pc_ref_field_inp )
     call flux_pc_ref_mass_inp_prod_rtran( inner2, ls_transport_controller, 1_i_def, flux_pc_ref_mass_inp )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
     if ( allocated(dummy_inp) )              deallocate( dummy_inp )
     if ( allocated(flux_pc_ref_field_inp) )  deallocate( flux_pc_ref_field_inp )
     if ( allocated(flux_pc_ref_mass_inp) )   deallocate( flux_pc_ref_mass_inp )
@@ -245,9 +245,9 @@ module adjt_flux_precomputations_alg_mod
     real(kind=r_tran)            :: relative_diff
 
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, dummy, dummy_vs )
-    pert_wind_ls_rho_controller => tl_transport_controller % get_pert_wind_ls_rho_controller()
-    flux_pc => pert_wind_ls_rho_controller % get_flux_precomputations()
-    num_steps = flux_pc % get_num_steps()
+    pert_wind_ls_rho_controller => tl_transport_controller%get_pert_wind_ls_rho_controller()
+    flux_pc => pert_wind_ls_rho_controller%get_flux_precomputations()
+    num_steps = flux_pc%get_num_steps()
 
     ref_flux_inner_prod = 0.0_r_def
 
@@ -276,7 +276,7 @@ module adjt_flux_precomputations_alg_mod
                    setval_X( ref_flux_inp(step), ref_flux(step) ) )
 
       ! Tangent linear
-      call flux_pc % initialise_step( step, ref_flux(step) )
+      call flux_pc%initialise_step( step, ref_flux(step) )
       call invoke( x_innerproduct_x( ref_flux_inner_prod, &
                                      ref_flux(step) ) )
 
@@ -305,7 +305,7 @@ module adjt_flux_precomputations_alg_mod
     end do
     call flux_pc_ref_flux_inp_prod_rtran( inner2, pert_wind_ls_rho_controller, 1_i_def, flux_pc_ref_flux_inp )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
 
     ! Test the inner-product values for equality, allowing for the precision of the active variables
     machine_tol = spacing( max( abs(inner1), abs(inner2) ) )

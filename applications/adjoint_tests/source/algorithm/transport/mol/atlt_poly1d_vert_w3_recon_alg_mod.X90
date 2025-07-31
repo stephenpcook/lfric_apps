@@ -108,17 +108,17 @@ module atlt_poly1d_vert_w3_recon_alg_mod
       global_order = fv_vertical_order
     end if
 
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, w3                             &
+    vector_space_w3_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, w3                           &
     )
-    vector_space_w3_md_ptr => function_space_collection % get_fs(              &
-        mesh, element_order_h, element_order_v, w3, ndata = ndata              &
+    vector_space_w3_md_ptr => function_space_collection%get_fs(              &
+        mesh, element_order_h, element_order_v, w3, ndata = ndata            &
     )
-    call reconstruction % initialise(vector_space=vector_space_w3_md_ptr, name='reconstruction')
-    call tracer % initialise(vector_space=vector_space_w3_ptr, name='tracer')
-    call ls_tracer % initialise(vector_space=vector_space_w3_ptr, name='ls_tracer')
-    call reconstruction_input % initialise(vector_space=vector_space_w3_md_ptr, name='reconstruction_input')
-    call tracer_input % initialise(vector_space=vector_space_w3_ptr, name='tracer_input')
+    call reconstruction%initialise(vector_space=vector_space_w3_md_ptr, name='reconstruction')
+    call tracer%initialise(vector_space=vector_space_w3_ptr, name='tracer')
+    call ls_tracer%initialise(vector_space=vector_space_w3_ptr, name='ls_tracer')
+    call reconstruction_input%initialise(vector_space=vector_space_w3_md_ptr, name='reconstruction_input')
+    call tracer_input%initialise(vector_space=vector_space_w3_ptr, name='tracer_input')
 
     reconstruction_inner_prod = 0.0_r_def
     tracer_inner_prod = 0.0_r_def

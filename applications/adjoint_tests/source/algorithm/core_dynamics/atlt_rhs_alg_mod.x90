@@ -118,48 +118,48 @@ module atlt_rhs_alg_mod
     dlayer_rhs = .TRUE.
 
     ! Initialising fields
-    vector_space_wtheta_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, Wtheta )
-    vector_space_w2_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, W2 )
-    vector_space_w3_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, W3 )
+    vector_space_wtheta_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, Wtheta )
+    vector_space_w2_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, W2 )
+    vector_space_w3_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, W3 )
 
-    call state(igh_u) % initialise( vector_space = vector_space_w2_ptr )
-    call state(igh_t) % initialise( vector_space = vector_space_wtheta_ptr )
-    call state(igh_d) % initialise( vector_space = vector_space_w3_ptr )
-    call state(igh_p) % initialise( vector_space = vector_space_w3_ptr )
+    call state(igh_u)%initialise( vector_space = vector_space_w2_ptr )
+    call state(igh_t)%initialise( vector_space = vector_space_wtheta_ptr )
+    call state(igh_d)%initialise( vector_space = vector_space_w3_ptr )
+    call state(igh_p)%initialise( vector_space = vector_space_w3_ptr )
 
-    call state(igh_u) % copy_field_properties( base_state(igh_u) )
-    call state(igh_t) % copy_field_properties( base_state(igh_t) )
-    call state(igh_d) % copy_field_properties( base_state(igh_d) )
+    call state(igh_u)%copy_field_properties( base_state(igh_u) )
+    call state(igh_t)%copy_field_properties( base_state(igh_t) )
+    call state(igh_d)%copy_field_properties( base_state(igh_d) )
 
-    call state(igh_u) % copy_field_properties( ls_state(igh_u) )
-    call state(igh_t) % copy_field_properties( ls_state(igh_t) )
-    call state(igh_d) % copy_field_properties( ls_state(igh_d) )
-    call state(igh_p) % copy_field_properties( ls_state(igh_p) )
+    call state(igh_u)%copy_field_properties( ls_state(igh_u) )
+    call state(igh_t)%copy_field_properties( ls_state(igh_t) )
+    call state(igh_d)%copy_field_properties( ls_state(igh_d) )
+    call state(igh_p)%copy_field_properties( ls_state(igh_p) )
 
     do moist_idx = 1, num_moist_factors
-      call moist_dyn(moist_idx) % initialise( vector_space = vector_space_wtheta_ptr )
-      call moist_dyn(moist_idx) % copy_field_properties( moist_dyn_input(moist_idx) )
-      call moist_dyn(moist_idx) % copy_field_properties( ls_moist_dyn(moist_idx) )
+      call moist_dyn(moist_idx)%initialise( vector_space = vector_space_wtheta_ptr )
+      call moist_dyn(moist_idx)%copy_field_properties( moist_dyn_input(moist_idx) )
+      call moist_dyn(moist_idx)%copy_field_properties( ls_moist_dyn(moist_idx) )
     end do
 
-    call state(igh_u) % copy_field_properties( rhs(igh_u) )
-    call state(igh_t) % copy_field_properties( rhs(igh_t) )
-    call state(igh_d) % copy_field_properties( rhs(igh_d) )
-    call state(igh_p) % copy_field_properties( rhs(igh_p) )
+    call state(igh_u)%copy_field_properties( rhs(igh_u) )
+    call state(igh_t)%copy_field_properties( rhs(igh_t) )
+    call state(igh_d)%copy_field_properties( rhs(igh_d) )
+    call state(igh_p)%copy_field_properties( rhs(igh_p) )
 
-    call state(igh_u) % copy_field_properties( base_state_input(igh_u) )
-    call state(igh_t) % copy_field_properties( base_state_input(igh_t) )
-    call state(igh_d) % copy_field_properties( base_state_input(igh_d) )
+    call state(igh_u)%copy_field_properties( base_state_input(igh_u) )
+    call state(igh_t)%copy_field_properties( base_state_input(igh_t) )
+    call state(igh_d)%copy_field_properties( base_state_input(igh_d) )
 
-    call state(igh_u) % copy_field_properties( state_input(igh_u) )
-    call state(igh_t) % copy_field_properties( state_input(igh_t) )
-    call state(igh_d) % copy_field_properties( state_input(igh_d) )
-    call state(igh_p) % copy_field_properties( state_input(igh_p) )
+    call state(igh_u)%copy_field_properties( state_input(igh_u) )
+    call state(igh_t)%copy_field_properties( state_input(igh_t) )
+    call state(igh_d)%copy_field_properties( state_input(igh_d) )
+    call state(igh_p)%copy_field_properties( state_input(igh_p) )
 
-    call state(igh_u) % copy_field_properties( rhs_input(igh_u) )
-    call state(igh_t) % copy_field_properties( rhs_input(igh_t) )
-    call state(igh_d) % copy_field_properties( rhs_input(igh_d) )
-    call state(igh_p) % copy_field_properties( rhs_input(igh_p) )
+    call state(igh_u)%copy_field_properties( rhs_input(igh_u) )
+    call state(igh_t)%copy_field_properties( rhs_input(igh_t) )
+    call state(igh_d)%copy_field_properties( rhs_input(igh_d) )
+    call state(igh_p)%copy_field_properties( rhs_input(igh_p) )
 
     base_state_inner_prod(:) = 0.0_r_def
     state_inner_prod(:) = 0.0_r_def

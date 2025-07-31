@@ -82,17 +82,17 @@ module adjt_reconstruct_w3_field_alg_mod
     transport_metadata => transport_metadata_collection%get_transport_metadata('density')
 
     ! Initialising fields
-    vector_space_w3_md_ptr => function_space_collection % get_fs(              &
+    vector_space_w3_md_ptr => function_space_collection%get_fs(                &
         mesh, element_order_h, element_order_v, W3, ndata, ndata_first=.false. &
     )
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
+    vector_space_w3_ptr => function_space_collection%get_fs(                   &
         mesh, element_order_h, element_order_v, W3                             &
     )
 
-    call field_new % initialise( vector_space = vector_space_w3_md_ptr )
-    call field_old % initialise( vector_space = vector_space_w3_ptr )
-    call field_new_input % initialise( vector_space = vector_space_w3_md_ptr )
-    call field_old_input % initialise( vector_space = vector_space_w3_ptr )
+    call field_new%initialise( vector_space = vector_space_w3_md_ptr )
+    call field_old%initialise( vector_space = vector_space_w3_ptr )
+    call field_new_input%initialise( vector_space = vector_space_w3_md_ptr )
+    call field_old_input%initialise( vector_space = vector_space_w3_ptr )
 
     field_new_inner_prod = 0.0_r_def
     field_old_inner_prod = 0.0_r_def

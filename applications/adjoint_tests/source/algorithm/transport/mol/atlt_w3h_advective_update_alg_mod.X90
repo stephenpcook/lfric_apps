@@ -76,27 +76,27 @@ module atlt_w3h_advective_update_alg_mod
 
     stencil_extent = 1_i_def
     ndata = 6_i_def
-    vector_space_w3_md_ptr => function_space_collection % get_fs(              &
+    vector_space_w3_md_ptr => function_space_collection%get_fs(                &
         mesh, element_order_h, element_order_v, W3, ndata, ndata_first=.false. &
     )
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
+    vector_space_w3_ptr => function_space_collection%get_fs(                   &
         mesh, element_order_h, element_order_v, W3                             &
     )
-    vector_space_w2_ptr => function_space_collection % get_fs(                 &
+    vector_space_w2_ptr => function_space_collection%get_fs(                   &
         mesh, element_order_h, element_order_v, W2                             &
     )
 
     ! Stencil fields need bigger halos due to atl_w3h being a stencil operation with GH_INC.
-    call advective_increment % initialise( vector_space=vector_space_w3_ptr, name='advective_increment', &
+    call advective_increment%initialise( vector_space=vector_space_w3_ptr, name='advective_increment', &
                                            halo_depth=1_i_def )
-    call tracer % initialise( vector_space=vector_space_w3_md_ptr, name='tracer ', &
+    call tracer%initialise( vector_space=vector_space_w3_md_ptr, name='tracer ', &
                               halo_depth=stencil_extent + 1_i_def )
-    call ls_wind % initialise( vector_space=vector_space_w2_ptr, name='ls_wind', &
+    call ls_wind%initialise( vector_space=vector_space_w2_ptr, name='ls_wind', &
                                halo_depth=stencil_extent + 1_i_def )
-    call wind % initialise( vector_space=vector_space_w2_ptr, name='wind' )
-    call advective_increment_input % initialise( vector_space=vector_space_w3_ptr, name='advective_increment_input' )
-    call wind_input % initialise( vector_space=vector_space_w2_ptr, name='wind_input' )
-    m3_inv => get_inverse_mass_matrix_fe( W3, mesh % get_id() )
+    call wind%initialise( vector_space=vector_space_w2_ptr, name='wind' )
+    call advective_increment_input%initialise( vector_space=vector_space_w3_ptr, name='advective_increment_input' )
+    call wind_input%initialise( vector_space=vector_space_w2_ptr, name='wind_input' )
+    m3_inv => get_inverse_mass_matrix_fe( W3, mesh%get_id() )
 
     advective_increment_inner_prod = 0.0_r_def
     wind_inner_prod = 0.0_r_def

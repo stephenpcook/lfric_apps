@@ -76,16 +76,16 @@ module atlt_moist_dyn_factors_alg_mod
     real(kind=r_def), parameter :: eps = 1e-30_r_def
 
     ! Initialising fields
-    vector_space_wtheta_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, Wtheta )
+    vector_space_wtheta_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, Wtheta )
 
     do moist_idx = 1, num_moist_factors
-      call moist_dyn(moist_idx) % initialise( vector_space = vector_space_wtheta_ptr )
-      call moist_dyn(moist_idx) % copy_field_properties( moist_dyn_input(moist_idx) )
+      call moist_dyn(moist_idx)%initialise( vector_space = vector_space_wtheta_ptr )
+      call moist_dyn(moist_idx)%copy_field_properties( moist_dyn_input(moist_idx) )
     end do
 
     do mr_idx = 1, nummr
-      call mr(mr_idx) % initialise( vector_space = vector_space_wtheta_ptr )
-      call mr(mr_idx) % copy_field_properties( mr_input(mr_idx) )
+      call mr(mr_idx)%initialise( vector_space = vector_space_wtheta_ptr )
+      call mr(mr_idx)%copy_field_properties( mr_input(mr_idx) )
     end do
 
     moist_dyn_inner_prod(:) = 0.0_r_def

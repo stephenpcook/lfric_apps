@@ -77,7 +77,7 @@ module adjt_poly2d_recon_lookup_alg_mod
     nullify(coeff, vector_space_wt_md_ptr, vector_space_wtheta_ptr, &
             lookup_field, num_sets_field)
 
-    mesh_id = mesh % get_id()
+    mesh_id = mesh%get_id()
     if (mod(fv_horizontal_order, 2) == 0) then
       stencil_size = 1 + 2*fv_horizontal_order + fv_horizontal_order**2
     else
@@ -87,17 +87,17 @@ module adjt_poly2d_recon_lookup_alg_mod
     ndata = 4
     coeff => get_hori_wt_mol_coeffs(mesh_id)
     stencil_extent = fv_horizontal_order/2_i_def
-    vector_space_wt_md_ptr => function_space_collection % get_fs( &
+    vector_space_wt_md_ptr => function_space_collection%get_fs( &
       mesh, element_order_h, element_order_v, fspace_enum, ndata=ndata, ndata_first=.false. &
     )
-    vector_space_wtheta_ptr => function_space_collection % get_fs( &
+    vector_space_wtheta_ptr => function_space_collection%get_fs( &
       mesh, element_order_h, element_order_v, fspace_enum &
     )
-    call reconstruction % initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction')
-    call tracer % initialise(vector_space=vector_space_wtheta_ptr, name='tracer', halo_depth=2)
-    call tracer % copy_field_properties( dummy_ads2 )
-    call reconstruction_input % initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction_input')
-    call tracer_input % initialise(vector_space=vector_space_wtheta_ptr, name='tracer_input', halo_depth=2)
+    call reconstruction%initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction')
+    call tracer%initialise(vector_space=vector_space_wtheta_ptr, name='tracer', halo_depth=2)
+    call tracer%copy_field_properties( dummy_ads2 )
+    call reconstruction_input%initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction_input')
+    call tracer_input%initialise(vector_space=vector_space_wtheta_ptr, name='tracer_input', halo_depth=2)
     reconstruction_inner_prod = 0.0_r_def
     tracer_inner_prod = 0.0_r_def
     ! Initialise arguments and call the tangent-linear kernel.

@@ -76,22 +76,22 @@ module atlt_derive_exner_from_eos_alg_mod
     real(kind=r_def), parameter :: eps = 1e-30_r_def
 
     ! Initialising fields
-    vector_space_wtheta_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, Wtheta )
-    vector_space_w3_ptr => function_space_collection % get_fs( mesh, element_order_h, element_order_v, W3 )
+    vector_space_wtheta_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, Wtheta )
+    vector_space_w3_ptr => function_space_collection%get_fs( mesh, element_order_h, element_order_v, W3 )
 
-    call state(igh_t) % initialise( vector_space = vector_space_wtheta_ptr )
-    call state(igh_d) % initialise( vector_space = vector_space_w3_ptr )
-    call state(igh_p) % initialise( vector_space = vector_space_w3_ptr )
-    call moist_dyn % initialise( vector_space = vector_space_wtheta_ptr )
+    call state(igh_t)%initialise( vector_space = vector_space_wtheta_ptr )
+    call state(igh_d)%initialise( vector_space = vector_space_w3_ptr )
+    call state(igh_p)%initialise( vector_space = vector_space_w3_ptr )
+    call moist_dyn%initialise( vector_space = vector_space_wtheta_ptr )
 
-    call state(igh_t) % copy_field_properties( ls_state(igh_t) )
-    call state(igh_d) % copy_field_properties( ls_state(igh_d) )
-    call moist_dyn % copy_field_properties( ls_moist_dyn )
+    call state(igh_t)%copy_field_properties( ls_state(igh_t) )
+    call state(igh_d)%copy_field_properties( ls_state(igh_d) )
+    call moist_dyn%copy_field_properties( ls_moist_dyn )
 
-    call state(igh_t) % copy_field_properties( state_input(igh_t) )
-    call state(igh_d) % copy_field_properties( state_input(igh_d) )
-    call state(igh_p) % copy_field_properties( state_input(igh_p) )
-    call moist_dyn % copy_field_properties( moist_dyn_input )
+    call state(igh_t)%copy_field_properties( state_input(igh_t) )
+    call state(igh_d)%copy_field_properties( state_input(igh_d) )
+    call state(igh_p)%copy_field_properties( state_input(igh_p) )
+    call moist_dyn%copy_field_properties( moist_dyn_input )
 
     state_inner_prod(:) = 0.0_r_def
     moist_dyn_inner_prod = 0.0_r_def

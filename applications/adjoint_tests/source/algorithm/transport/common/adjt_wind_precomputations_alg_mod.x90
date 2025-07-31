@@ -106,20 +106,20 @@ module adjt_wind_precomputations_alg_mod
     real(kind=r_tran) :: machine_tol
     real(kind=r_tran) :: relative_diff
 
-    mesh_id = mesh % get_id()
+    mesh_id = mesh%get_id()
 
     ! Initialising fields
-    vector_space_w2_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, W2                             &
+    vector_space_w2_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, W2                           &
     )
 
-    call transporting_wind % initialise( vector_space = vector_space_w2_ptr )
-    call wind_n % initialise( vector_space = vector_space_w2_ptr )
-    call wind_np1 % initialise( vector_space = vector_space_w2_ptr )
+    call transporting_wind%initialise( vector_space = vector_space_w2_ptr )
+    call wind_n%initialise( vector_space = vector_space_w2_ptr )
+    call wind_np1%initialise( vector_space = vector_space_w2_ptr )
 
-    call transporting_wind % copy_field_properties( transporting_wind_inp )
-    call wind_n % copy_field_properties( wind_n_inp )
-    call wind_np1 % copy_field_properties( wind_np1_inp )
+    call transporting_wind%copy_field_properties( transporting_wind_inp )
+    call wind_n%copy_field_properties( wind_n_inp )
+    call wind_np1%copy_field_properties( wind_np1_inp )
 
     ! Initialise values
     call invoke( setval_random( transporting_wind ),                   &
@@ -138,20 +138,20 @@ module adjt_wind_precomputations_alg_mod
     ! To avoid complexity everywhere else with the inner products, we need the wind precomputations
     ! object to be associated with a transport controller...
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, dummy, dummy_vs, 'wind' )
-    pert_transport_controller => tl_transport_controller % get_pert_wind_ls_rho_controller()
+    pert_transport_controller => tl_transport_controller%get_pert_wind_ls_rho_controller()
 
     ! But this getter actually initialises the wind precomputations using the fields in the test setup function...
-    wind_pc => pert_transport_controller % get_wind_precomputations()
+    wind_pc => pert_transport_controller%get_wind_precomputations()
 
     ! So we deallocate the arrays...
-    call wind_pc % finalise()
+    call wind_pc%finalise()
 
     ! And use the variables in this scope!
-    call wind_pc % initialise( mesh,              &
-                               dt_substep,        &
-                               transporting_wind, &
-                               wind_n,            &
-                               wind_np1 )
+    call wind_pc%initialise( mesh,              &
+                             dt_substep,        &
+                             transporting_wind, &
+                             wind_n,            &
+                             wind_np1 )
 
     call init_wind_pc_npdt_fieldvals( mesh,                     &
                                       wind_pc_n_inp,            &
@@ -240,7 +240,7 @@ module adjt_wind_precomputations_alg_mod
     call wind_pc_dir_inp_prod_rtran( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
     call wind_pc_dir_inp_prod_rtran( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
 
     ! Test the inner-product values for equality, allowing for the precision of the active variables
     machine_tol = spacing( max( abs( inner1 ), abs( inner2 ) ) )

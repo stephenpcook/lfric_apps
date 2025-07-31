@@ -138,9 +138,9 @@ module adjt_apply_helmholtz_op_lookup_alg_mod
 
     ! Create lookup table.
     call create_lookup_apply_helmholtz_op( lookup, vector_mx )
-    lookup_field => lookup % get_lookup_field()
-    set_counts_field => lookup % get_set_count_field()
-    nindices = lookup % get_nindices()
+    lookup_field => lookup%get_lookup_field()
+    set_counts_field => lookup%get_set_count_field()
+    nindices = lookup%get_nindices()
 
     call invoke_adj_a_h_o_lookup_kernel( vector_mx,          &
                                          vector_amx,         &

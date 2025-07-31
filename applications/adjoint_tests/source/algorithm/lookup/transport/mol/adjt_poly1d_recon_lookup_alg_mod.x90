@@ -84,23 +84,23 @@ module adjt_poly1d_recon_lookup_alg_mod
     nullify(coeff, lookup_poly1d_field, num_sets_poly1d_field, &
             vector_space_wtheta_ptr, vector_space_wt_md_ptr)
 
-    mesh_id = mesh % get_id()
+    mesh_id = mesh%get_id()
     stencil_size = fv_horizontal_order + 1
     ndata = 4*stencil_size
     coeff => get_hori_wt_mol_coeffs(mesh_id)
     stencil_extent = fv_horizontal_order/2_i_def
     order = fv_horizontal_order
-    vector_space_wt_md_ptr => function_space_collection % get_fs(              &
-        mesh, element_order_h, element_order_v, wtheta, ndata=ndata            &
+    vector_space_wt_md_ptr => function_space_collection%get_fs(              &
+        mesh, element_order_h, element_order_v, wtheta, ndata=ndata          &
     )
-    vector_space_wtheta_ptr => function_space_collection % get_fs(             &
-        mesh, element_order_h, element_order_v, wtheta                         &
+    vector_space_wtheta_ptr => function_space_collection%get_fs(             &
+        mesh, element_order_h, element_order_v, wtheta                       &
     )
 
-    call reconstruction % initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction')
-    call tracer % initialise(vector_space=vector_space_wtheta_ptr, name='tracer', halo_depth=2)
-    call reconstruction_input % initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction_input')
-    call tracer_input % initialise(vector_space=vector_space_wtheta_ptr, name='tracer_input', halo_depth=2)
+    call reconstruction%initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction')
+    call tracer%initialise(vector_space=vector_space_wtheta_ptr, name='tracer', halo_depth=2)
+    call reconstruction_input%initialise(vector_space=vector_space_wt_md_ptr, name='reconstruction_input')
+    call tracer_input%initialise(vector_space=vector_space_wtheta_ptr, name='tracer_input', halo_depth=2)
 
     reconstruction_inner_prod = 0.0_r_def
     tracer_inner_prod = 0.0_r_def
@@ -131,10 +131,10 @@ module adjt_poly1d_recon_lookup_alg_mod
     tracer_tracer_input_inner_prod = 0.0_r_def
 
     call create_lookup_poly1d( lookup_poly1d, reconstruction, tracer, coeff, stencil_extent, order )
-    lookup_poly1d_field => lookup_poly1d % get_lookup_field()
-    num_sets_poly1d_field => lookup_poly1d % get_set_count_field()
-    nindices = lookup_poly1d % get_nindices()
-    nsets = lookup_poly1d % get_nsets_max()
+    lookup_poly1d_field => lookup_poly1d%get_lookup_field()
+    num_sets_poly1d_field => lookup_poly1d%get_set_count_field()
+    nindices = lookup_poly1d%get_nindices()
+    nsets = lookup_poly1d%get_nsets_max()
 
     call invoke_adj_poly1d_recon_lookup(reconstruction, tracer, &
                                         lookup_poly1d_field, num_sets_poly1d_field, &

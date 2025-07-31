@@ -69,16 +69,16 @@ module init_from_controller_alg_mod
     type(r_tran_field_type),                                  pointer :: advecting_wind
 
     allocate( flux_inp(num_steps) )
-    transport_metadata => transport_controller % get_transport_metadata()
+    transport_metadata => transport_controller%get_transport_metadata()
     splitting = transport_metadata%get_splitting()
-    wind_pc => transport_controller % get_wind_precomputations()
+    wind_pc => transport_controller%get_wind_precomputations()
 
     ! Function space for each step is derived from the
     ! wind_precomputations object in the linear code
     do step = 1, num_steps
       direction = get_splitting_direction( splitting, step )
-      advecting_wind => wind_pc % get_wind( mesh % get_id(), direction )
-      call flux_inp(step) % initialise( advecting_wind % get_function_space() )
+      advecting_wind => wind_pc%get_wind( mesh%get_id(), direction )
+      call flux_inp(step)%initialise( advecting_wind%get_function_space() )
     end do
 
   end subroutine init_flux_fields
@@ -120,9 +120,9 @@ module init_from_controller_alg_mod
     type(function_space_type),                                pointer :: w3_fs
 
 
-    flux_pc => transport_controller % get_flux_precomputations()
-    mesh_id_from_idx = flux_pc % get_mesh_id_from_idx( mesh_idx )
-    num_steps = flux_pc % get_num_steps()
+    flux_pc => transport_controller%get_flux_precomputations()
+    mesh_id_from_idx = flux_pc%get_mesh_id_from_idx( mesh_idx )
+    num_steps = flux_pc%get_num_steps()
 
     ! Initialising and setting ref_flux input
     call init_flux_fields( mesh,                 &
@@ -135,32 +135,32 @@ module init_from_controller_alg_mod
       ! Initialise step must be called to prevent breakages
       ! when getting the ref_field and ref_mass.
       call invoke( setval_c( flux_pc_ref_flux_inp(step), 0.0_r_tran ) )
-      call flux_pc % initialise_step( step, flux_pc_ref_flux_inp(step) )
+      call flux_pc%initialise_step( step, flux_pc_ref_flux_inp(step) )
 
     end do
 
     allocate( flux_pc_ref_field_inp(num_steps + 1) )
     allocate( flux_pc_ref_mass_inp(num_steps + 1) )
-    halo_depth = mesh % get_halo_depth()
-    w3_fs => function_space_collection % get_fs( mesh, 0, 0, W3 )
+    halo_depth = mesh%get_halo_depth()
+    w3_fs => function_space_collection%get_fs( mesh, 0, 0, W3 )
 
     do step = 1, num_steps + 1
 
-      call flux_pc_ref_field_inp(step) % initialise( w3_fs, halo_depth = halo_depth )
-      call flux_pc_ref_mass_inp(step) % initialise( w3_fs, halo_depth = halo_depth )
+      call flux_pc_ref_field_inp(step)%initialise( w3_fs, halo_depth = halo_depth )
+      call flux_pc_ref_mass_inp(step)%initialise( w3_fs, halo_depth = halo_depth )
 
-      ref_mass_ptr => flux_pc % get_ref_mass( mesh_id_from_idx, &
+      ref_mass_ptr => flux_pc%get_ref_mass( mesh_id_from_idx, &
                                               step )
-      ref_field_ptr => flux_pc % get_ref_field( mesh_id_from_idx, &
+      ref_field_ptr => flux_pc%get_ref_field( mesh_id_from_idx, &
                                                 step )
 
-      if ( ref_field_ptr % is_initialised() ) then
+      if ( ref_field_ptr%is_initialised() ) then
         call invoke( setval_X( flux_pc_ref_field_inp(step), ref_field_ptr ) )
       else
         call invoke( setval_c( flux_pc_ref_field_inp(step), 0.0_r_tran ) )
       end if
 
-      if ( ref_mass_ptr % is_initialised() ) then
+      if ( ref_mass_ptr%is_initialised() ) then
         call invoke( setval_X( flux_pc_ref_mass_inp(step), ref_mass_ptr ) )
       else
         call invoke( setval_c( flux_pc_ref_mass_inp(step), 0.0_r_tran ) )
@@ -198,28 +198,28 @@ module init_from_controller_alg_mod
     type(field_type),                                         pointer :: field_n_ptr
 
 
-    transport_counter => transport_controller % get_transport_counter()
-    num_steps = transport_counter % get_num_split_steps_per_substep() - 1
+    transport_counter => transport_controller%get_transport_counter()
+    num_steps = transport_counter%get_num_split_steps_per_substep() - 1
     call init_flux_fields( mesh,                 &
                            num_steps,            &
                            counter_flux_inp,     &
                            transport_controller  )
 
     ! Setting field_n values
-    field_n_ptr => transport_counter % get_field_n()
-    call field_n_ptr % copy_field_properties( counter_field_n_inp )
+    field_n_ptr => transport_counter%get_field_n()
+    call field_n_ptr%copy_field_properties( counter_field_n_inp )
     call invoke( setval_X( counter_field_n_inp, field_n_ptr ) )
 
     ! Setting flux values
     do step = 1, num_steps
 
-      flux_ptr => transport_counter % get_flux( step )
+      flux_ptr => transport_counter%get_flux( step )
 
       ! If the field has been initialised we set it to that value,
       ! else we set to zero. This is safe to do because we have ensured
       ! the two sets of fields are on the same function space via
       ! init_flux_fields.
-      if ( flux_ptr % is_initialised() ) then
+      if ( flux_ptr%is_initialised() ) then
         call invoke( setval_X( counter_flux_inp(step), flux_ptr ) )
       else
         call invoke( setval_c( counter_flux_inp(step), 0.0_r_tran ) )
@@ -256,10 +256,10 @@ module init_from_controller_alg_mod
 
 
     ! Setting wind values
-    mesh_id = mesh % get_id()
-    wind_pc => transport_controller % get_wind_precomputations()
-    wind_ptr => wind_pc % get_wind( mesh_id, direction )
-    call wind_ptr % copy_field_properties( wind_pc_inp )
+    mesh_id = mesh%get_id()
+    wind_pc => transport_controller%get_wind_precomputations()
+    wind_ptr => wind_pc%get_wind( mesh_id, direction )
+    call wind_ptr%copy_field_properties( wind_pc_inp )
     call invoke( setval_X( wind_pc_inp, wind_ptr ) )
 
   end subroutine init_wind_pc_fieldvals
@@ -292,10 +292,10 @@ module init_from_controller_alg_mod
 
 
     ! Setting wind values
-    mesh_id = mesh % get_id()
-    wind_pc => transport_controller % get_wind_precomputations()
-    wind_ptr => wind_pc % get_wind_npdt( mesh_id, delta_t )
-    call wind_ptr % copy_field_properties( wind_pc_npdt_inp )
+    mesh_id = mesh%get_id()
+    wind_pc => transport_controller%get_wind_precomputations()
+    wind_ptr => wind_pc%get_wind_npdt( mesh_id, delta_t )
+    call wind_ptr%copy_field_properties( wind_pc_npdt_inp )
     call invoke( setval_X( wind_pc_npdt_inp, wind_ptr ) )
 
   end subroutine init_wind_pc_npdt_fieldvals
@@ -331,20 +331,20 @@ module init_from_controller_alg_mod
     type(r_tran_field_type),               pointer :: transporting_wind
 
 
-    ref_field => transport_controller % get_ref_field()
-    call ref_field % copy_field_properties( ctrlr_ref_field_inp )
+    ref_field => transport_controller%get_ref_field()
+    call ref_field%copy_field_properties( ctrlr_ref_field_inp )
     call invoke( setval_X( ctrlr_ref_field_inp, ref_field ) )
 
-    wind_n => transport_controller % get_wind_npdt(0_i_def)
-    call wind_n % copy_field_properties( ctrlr_wind_n_inp )
+    wind_n => transport_controller%get_wind_npdt(0_i_def)
+    call wind_n%copy_field_properties( ctrlr_wind_n_inp )
     call invoke( setval_X( ctrlr_wind_n_inp, wind_n ) )
 
-    wind_np1 => transport_controller % get_wind_npdt(1_i_def)
-    call wind_np1 % copy_field_properties( ctrlr_wind_np1_inp )
+    wind_np1 => transport_controller%get_wind_npdt(1_i_def)
+    call wind_np1%copy_field_properties( ctrlr_wind_np1_inp )
     call invoke( setval_X( ctrlr_wind_np1_inp, wind_np1 ) )
 
-    transporting_wind => transport_controller % get_transporting_wind()
-    call transporting_wind % copy_field_properties( ctrlr_transporting_wind_inp )
+    transporting_wind => transport_controller%get_transporting_wind()
+    call transporting_wind%copy_field_properties( ctrlr_transporting_wind_inp )
     call invoke( setval_X( ctrlr_transporting_wind_inp, transporting_wind ) )
 
   end subroutine init_ctrlr_fieldvals

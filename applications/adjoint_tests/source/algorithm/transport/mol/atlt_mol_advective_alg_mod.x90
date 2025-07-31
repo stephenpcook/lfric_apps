@@ -97,9 +97,9 @@ module atlt_mol_advective_alg_mod
     real(kind=r_def)            :: machine_tol
     real(kind=r_def)            :: relative_diff
 
-    mesh_id = mesh % get_id()
+    mesh_id = mesh%get_id()
     call setup_test_tl_transport_controller( mesh, model_clock, tl_transport_controller, tctr_field_n, tctr_field_n_vs )
-    pert_transport_controller => tl_transport_controller % get_pert_wind_ls_rho_controller()
+    pert_transport_controller => tl_transport_controller%get_pert_wind_ls_rho_controller()
 
     ! Initialising fields
     call init_wind_pc_fieldvals( mesh,                     &
@@ -116,15 +116,15 @@ module atlt_mol_advective_alg_mod
                                  pert_transport_controller )
 
     ! Initialising fields
-    vector_space_w3_ptr => function_space_collection % get_fs(                 &
-        mesh, element_order_h, element_order_v, W3                             &
+    vector_space_w3_ptr => function_space_collection%get_fs(                 &
+        mesh, element_order_h, element_order_v, W3                           &
     )
 
-    call field_np1 % initialise( vector_space = vector_space_w3_ptr )
-    call ls_field % initialise( vector_space = vector_space_w3_ptr )
-    call field % initialise( vector_space = vector_space_w3_ptr )
-    call field_np1_input % initialise( vector_space = vector_space_w3_ptr )
-    call field_input % initialise( vector_space = vector_space_w3_ptr )
+    call field_np1%initialise( vector_space = vector_space_w3_ptr )
+    call ls_field%initialise( vector_space = vector_space_w3_ptr )
+    call field%initialise( vector_space = vector_space_w3_ptr )
+    call field_np1_input%initialise( vector_space = vector_space_w3_ptr )
+    call field_input%initialise( vector_space = vector_space_w3_ptr )
 
     field_np1_inner_prod = 0.0_r_def
     field_inner_prod = 0.0_r_def
@@ -186,7 +186,7 @@ module atlt_mol_advective_alg_mod
     call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_v, wind_pc_v_inp )
     call wind_pc_dir_inp_prod_rdef( inner2, pert_transport_controller, mesh_id, direction_3d, wind_pc_3d_inp )
 
-    call tl_transport_controller % finalise()
+    call tl_transport_controller%finalise()
 
     ! Test the inner-product values for equality, allowing for the precision of the active variables
     machine_tol = spacing( max( abs( inner1 ), abs( inner2 ) ) )
